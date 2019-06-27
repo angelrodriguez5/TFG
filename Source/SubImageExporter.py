@@ -11,7 +11,7 @@ from tkinter.filedialog import askopenfilename
 marks = []
 
 # Visualisation mode
-pixelMode = True
+pixelMode = False
 
 # region Mark
 class Mark(patches.Rectangle):
@@ -34,8 +34,6 @@ class Mark(patches.Rectangle):
         self.customSize = customSize  
         # Update the view to match current mode
         self.updateView()
-
-
 
     def getCenter(self):
         return self.center
@@ -88,11 +86,24 @@ class Mark(patches.Rectangle):
         # normalised between 0 and 1 with respect to the size of an image
         cx, cy = map(lambda x,y: x / (y - 1), self.center, imgDimensions)
         if (self.customSize):
-            h, w = map(lambda x,y: x / (y), self.customSize, imgDimensions)
+            w, h = map(lambda x,y: x / y, self.customSize, imgDimensions)
         else:
-            h, w = map(lambda x,y: x / (y), self.DEFAULT_SIZE, imgDimensions)
+            w, h = map(lambda x,y: x / y, self.DEFAULT_SIZE, imgDimensions)
 
-        return (self.classNum, cx, cy, h, w)
+        return (self.classNum, cx, cy, w, h)
+
+    @staticmethod
+    def buildFromNorm(normForm, imgDimensions):
+        classNum, nx, ny, nw, nh = normForm
+        width, height = imgDimensions
+        # Translate normalised form to image pixels
+        cx = round((width - 1) * nx)
+        cy = round((height - 1) * ny)
+        w = round(width * nw)
+        h = round(height * nh)
+
+        return Mark((cx,cy), classNum, (w,h))
+
 
 #endregion
 
@@ -243,13 +254,34 @@ class GUI(object):
         rgb = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
         # Configure figure
-        fig = plt.figure()
+        fig, ax = plt.subplots()
         plt.imshow(rgb)
         cidButton = fig.canvas.mpl_connect('button_press_event', self.onClick)
         cidKey = fig.canvas.mpl_connect('key_press_event', self.onKey)
 
         # Set initial state
         self.setState(self.MOV_STATE)
+
+        # If .txt file exists, load existing marks
+        fileName = os.path.splitext(self.imgPath)[0] + '.txt'
+        if (os.path.isfile(fileName)):
+            f = open(fileName, 'r')
+            height, width, channels = self.img.shape
+            while (True):
+                line = f.readline()
+                if line == '': break
+                # Cast array of string to floats
+                array = [float(x) for x in line.split()]
+                # Cast class number to int
+                array[0] = int(array[0])
+                # Populate mark list with existing marks in the file
+                mark = Mark.buildFromNorm(tuple(array), (width, height))
+                marks.append(mark)
+
+            # Add marks to plot
+            for mark in marks:
+                ax.add_patch(mark)
+        #end if
 
         # Show figure
         plt.show()
@@ -325,21 +357,14 @@ class GUI(object):
         # Save the text file in the same dir and with the same name as the image
         # Change image extension for .txt
         fileName = os.path.splitext(self.imgPath)[0] + '.txt'
-        # Create the txt or return if it exists
-        try:
-            f = open(fileName, "x")
-            print("Created a new .txt file")
-        except IOError:
-            print('File already exists')
-            return
+        # Open or create the txt and overwrite it with current
+        f = open(fileName, "w")
         
-        # From this point, f is the .txt file opened
         height, width, channels = self.img.shape
-
         # Iterate over mark list
         for mark in marks:
             # Save normalised data for each mark
-            line = '%d %f %f %f %f\n' % mark.normalise((width, height))
+            line = '%d %.10f %.10f %.10f %.10f\n' % mark.normalise((width, height))
             f.write(line)
             
         print ("Exported %d subImages" % len(marks))
