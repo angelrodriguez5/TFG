@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import math
 import os
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 
 # Config constants
 REGION_SIZE = (7,5)
-PATH = "img/test.png"
 
 # List of chosen points
 marks = []
@@ -22,13 +23,15 @@ class Mark(patches.Rectangle):
 
     ''' Instance attributes
         - center
+        - classNum
     '''
 
-    def __init__(self, center):
+    def __init__(self, center, classNum):
         # Default, 1 pixel square that shadows a pixel of an image
         # Pyplot prints the pixel (0,0) of an image around the point (0,0) of the plot
         # so we need to offset the position of the mark to properly aling with the pixel in the image
         self.center = center
+        self.classNum = classNum
         xy = self.calcPointXY()
         super().__init__(xy, 1, 1)
         
@@ -69,7 +72,14 @@ class Mark(patches.Rectangle):
         # Calculate the position of the corner of the box taking into account the offset
         newX = self.center[0] - math.floor(REGION_SIZE[0] / 2) - .5
         newY = self.center[1] - math.floor(REGION_SIZE[1] / 2) - .5
-        return (newX, newY) 
+        return (newX, newY)
+
+    def normalise(self, imgDimensions):
+        # Return a tuple with the class number, center coordinates and dimensions
+        # normalised between 0 and 1 with respect to the size of an image
+        cx, cy = map(lambda x,y: x / (y - 1), self.center, imgDimensions)
+        h, w = map(lambda x,y: x / (y - 1), REGION_SIZE, imgDimensions)
+        return (self.classNum, cx, cy, h, w)
 
 #endregion
 
@@ -77,13 +87,13 @@ class Mark(patches.Rectangle):
 # Interface
 class State(object):
 
-    def processClick(self, event):
+    def processClick(self, event, classNum):
         raise NotImplementedError
 
 
 class AddState(State):
 
-    def processClick(self, event):
+    def processClick(self, event, classNum):
         # Reference to the subplot clicked
         ax = event.inaxes
         # Round event data to get the pixel
@@ -96,7 +106,7 @@ class AddState(State):
             return
         except StopIteration as error:
             # if it is not found, add it to the mark list
-            mark = Mark(xy)
+            mark = Mark(xy, classNum)
             marks.append(mark)
             # And to the figure
             ax.add_patch(mark)
@@ -105,15 +115,13 @@ class AddState(State):
 
 class MoveState(State):
 
-    def processClick(self, event):
+    def processClick(self, event, classNum):
         print ('Moving')
 
 
 class DeleteState(State):
 
-    def processClick(self, event):
-        # Reference to the subplot clicked
-        ax = event.inaxes
+    def processClick(self, event, classNum):
         # Round event data to get the pixel
         # The pixel (0,0) of an image is plotted between (-0.5, -0.5) and (0.5, 0.5)
         xy = (int(round(event.xdata)), int(round(event.ydata)))
@@ -137,14 +145,16 @@ class GUI(object):
     DEL_STATE = 2
 
     '''Instance attributes
-        -state
+        -imgPath
         -img
+        -state
     '''
 
-    def __init__(self):
-        
+    def __init__(self, path):
+        # Save path to image
+        self.imgPath = path
         # Open image in bgr
-        self.img = cv2.imread(PATH)
+        self.img = cv2.imread(self.imgPath)
         # Conver to rbg to show it
         rgb = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
@@ -161,8 +171,9 @@ class GUI(object):
         plt.show()
     
     def onClick(self, event):
+        classNum = 0
         # Delegate click management to the state
-        self.state.processClick(event)
+        self.state.processClick(event, classNum)
         # Update figure
         # TODO return a boolean saying if redraw is needed or not
         event.canvas.draw()
@@ -206,32 +217,46 @@ class GUI(object):
             self.state = DeleteState()
 
     def exportRegions (self):
-        # Create folder
-        dirName = "Subimages"
+        # Save the text file in the same dir and with the same name as the image
+        # Change image extension for .txt
+        fileName = os.path.splitext(self.imgPath)[0] + '.txt'
+        # Create the txt or return if it exists
         try:
-            os.mkdir(dirName)
-        except FileExistsError:
-            print("Directory " , dirName ,  " already exists")
-            # Cancel export
+            f = open(fileName, "x")
+            print("Created a new .txt file")
+        except IOError:
+            print('File already exists')
             return
+        
+        # From this point, f is the .txt file opened
+        height, width, channels = self.img.shape
 
         # Iterate over mark list
-        secNum = 0
         for mark in marks:
-            secNum += 1
+            # Save normalised data for each mark
+            line = '%d %f %f %f %f\n' % mark.normalise((width, height))
+            f.write(line)
+            
+        print ("Exported %d subImages" % len(marks))
 
-            # Get subimage centered around mark center and with size REGION_SIZE
-            (x, y) = mark.getCenter()
-            beginX = x - math.floor(REGION_SIZE[0] / 2)
-            beginY = y - math.floor(REGION_SIZE[1] / 2)
-            subImg = self.img[  beginY : beginY + REGION_SIZE[1], 
-                                beginX : beginX + REGION_SIZE[0]]
+        # Close the file
+        f.close()
 
-            # Save subimage
-            name = dirName + "/subimg" + str(secNum) + ".png"
-            cv2.imwrite(name, subImg)
 
-        print ("Exported " + str(secNum) + " subImages")
+def main():
+    # we don't want a full GUI, so keep the root window from appearing
+    Tk().withdraw()
+    # Supported file extensions
+    ftypes = [("Image", "*.png *.jpg *.jpeg *.bmp")]
+    # show an "Open" dialog box and return the path to the selected file
+    filename = askopenfilename(filetypes=ftypes)
 
-# Execute GUI
-gui = GUI()
+    if (filename):
+        # Execute GUI
+        gui = GUI(filename)
+    else:
+        print('Cancelled')
+
+if (__name__ == '__main__'):
+    # Run program
+    main()
