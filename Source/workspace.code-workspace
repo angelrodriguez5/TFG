@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG\\PyTorch-YOLOv3-master"
 		}
 	]
 }
