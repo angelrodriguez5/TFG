@@ -129,7 +129,7 @@ class AddPointState(State):
             mark = next(x for x in marks if x.getCenter() == xy)
             # If it is found return
             return
-        except StopIteration as error:
+        except StopIteration:
             # if it is not found, add it to the mark list
             # Create mark at center point with default size
             mark = Mark(xy, classNum)
@@ -166,7 +166,7 @@ class AddRegionState(State):
                 mark = next(x for x in marks if x.getCenter() == cxy)
                 # If it is found return
                 return
-            except StopIteration as error:
+            except StopIteration:
                 # if it is not found, add mark with custom size to the list
                 mark = Mark(cxy, classNum, size)
                 marks.append(mark)
@@ -225,7 +225,7 @@ class DeleteState(State):
             marks.remove(mark)
             mark.remove()
             print ("Mark removed at: %s" % (xy,))
-        except StopIteration as error:
+        except StopIteration:
             # Mark not found
             # TODO notify user
             pass

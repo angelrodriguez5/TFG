@@ -31,7 +31,7 @@ def exportFrames(fileName):
         # Save frame as a png image in the directory
         name = dirName + "/" + vidName + "-frame" + str(i) + ".png"
         # Flip frame to save it in the correct orientation
-        save = cv2.flip(cv2.transpose(frame), 0)
+        # save = cv2.flip(cv2.transpose(frame), 0)
         cv2.imwrite(name, frame)
         count += 1
 
