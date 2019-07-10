@@ -8,5 +8,6 @@ output
 data/coco
 backup
 weights/*.weights
+weights/*.conv.74
 __pycache__
 checkpoints
