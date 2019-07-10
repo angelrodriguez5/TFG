@@ -7,4 +7,3 @@ data/custom/images/DSC_1089-frame1680.png
 data/custom/images/DSC_1089-frame1920.png
 data/custom/images/DSC_1089-frame2160.png
 data/custom/images/DSC_1089-frame2400.png
-data/custom/images/DSC_1089-frame2640.png
