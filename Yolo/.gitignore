@@ -12,3 +12,4 @@ weights/*.conv.74
 __pycache__
 checkpoints
 logs
+*.pth
