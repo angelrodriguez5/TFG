@@ -38,6 +38,12 @@ class Mark(patches.Rectangle):
     def getCenter(self):
         return self.center
 
+    def move(self, offset):
+        offX, offY = offset
+        x, y = self.center
+        self.center = (x + offX, y + offY)
+        self.updateView()
+
     def updateView(self):
         if (pixelMode):
             # Draw a square that fills the center pixel
@@ -113,7 +119,6 @@ class State(object):
 
     def processClick(self, event, classNum):
         raise NotImplementedError
-
 
 class AddPointState(State):
 
@@ -208,10 +213,57 @@ class AddRegionState(State):
         return (width, height)
 
 class MoveState(State):
+    '''
+    Instance variables:
+        -cidDrag
+        -cidRelease
+        -isMoving
+        -myMark
+        -prevEvent
+    '''
+    def __init__(self):
+        self.cidDrag = None
+        self.cidRelease = None
+        self.isMoving = False
+        self.myMark = None
 
     def processClick(self, event, classNum):
-        print ('Moving')
+        # if the user clicks other button while holding the click, we ignore it
+        if (self.isMoving):
+            return
 
+        # Round event data to get the pixel
+        try:
+            self.myMark = next(x for x in marks if x.contains(event)[0])
+            self.prevEvent = event
+            # Mark found, set drag and release callbacks
+            self.cidDrag = event.canvas.mpl_connect('motion_notify_event', self.onDrag)
+            self.cidRelease = event.canvas.mpl_connect('button_release_event', self.onRelease)
+            print ('Moving: mark found and listeners set')
+        except StopIteration:
+            # Mark not found
+            return
+
+    def onDrag(self, event):
+        # On drag move mark
+        # calculate offset (in pixels) with respect to previous event
+        offX = int(round(event.xdata - self.prevEvent.xdata))
+        offY = int(round(event.ydata - self.prevEvent.ydata))
+        # ignore tiny movements since we want to snap to pixel coordinates
+        if ((offX, offY) != (0,0)):
+            # move mark
+            self.myMark.move((offX, offY))
+            # update previous event and canvas
+            self.prevEvent = event
+            event.canvas.draw()
+
+    def onRelease(self, event):
+        # On release, remove drag and release callbacks
+        event.canvas.mpl_disconnect(self.cidDrag)
+        event.canvas.mpl_disconnect(self.cidRelease)
+        # Set flag to not moving
+        self.isMoving = False
+        print ('Moving: click released, listeners disconnected')
 
 class DeleteState(State):
 
@@ -220,7 +272,7 @@ class DeleteState(State):
         # The pixel (0,0) of an image is plotted between (-0.5, -0.5) and (0.5, 0.5)
         xy = (int(round(event.xdata)), int(round(event.ydata)))
         try:
-            mark = next(x for x in marks if x.getCenter() == xy)
+            mark = next(x for x in marks if x.contains(event)[0])
             # Mark found
             marks.remove(mark)
             mark.remove()
@@ -256,7 +308,7 @@ class GUI(object):
         # Configure figure
         fig, ax = plt.subplots()
         plt.imshow(rgb)
-        cidButton = fig.canvas.mpl_connect('button_press_event', self.onClick)
+        cidButPress = fig.canvas.mpl_connect('button_press_event', self.onClickPress)
         cidKey = fig.canvas.mpl_connect('key_press_event', self.onKey)
 
         # Set initial state
@@ -286,11 +338,13 @@ class GUI(object):
         # Show figure
         plt.show()
     
-    def onClick(self, event):
+    def onClickPress(self, event):
         classNum = 0
         # Check that click is in bounds
         height, width, channels = self.img.shape
-        if (event is None):
+        if (event is None or
+            event.xdata is None or
+            event.ydata is None):
             print('Click outside of canvas')
             return
 
