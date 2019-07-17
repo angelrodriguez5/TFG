@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
             loss, outputs = model(imgs, targets)
             loss.backward()
-            cumulativeLoss += loss.item()
+            cumulativeLoss += loss
 
             if batches_done % opt.gradient_accumulations:
                 # Accumulates gradient before each step
