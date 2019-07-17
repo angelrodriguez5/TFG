@@ -52,13 +52,6 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 	if (len(sample_metrics) == 0):
 		#Dummy metrics
 		sample_metrics = [[[0], torch.Tensor([0]), torch.Tensor([0])]]
-	""" print ("Sample_metrix length: %d || type: %s" % (len(sample_metrics), type(sample_metrics)))
-	print ("element 0 length: %d || type: %s" % (len(sample_metrics[0]), type(sample_metrics[0])))
-	print ("element 0 0 type: %s" % (type(sample_metrics[0][0])))
-	print ("element 0 1 type: %s" % (type(sample_metrics[0][1])))
-	print ("element 0 2 type: %s" % (type(sample_metrics[0][2])))
-
-	print ("element 0 0 0 type: %s" % (type(sample_metrics[0][0][0]))) """
 
 	# Concatenate sample statistics
 	true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]

@@ -5,6 +5,7 @@ from utils.logger import *
 from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
+from utils.analytics import Analytics
 from test import evaluate
 
 from terminaltables import AsciiTable
@@ -24,7 +25,7 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
+    parser.add_argument("--epochs", type=int, default=3, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
     parser.add_argument("--model_def", type=str, default="config/customModelDef.cfg", help="path to model definition file")
@@ -94,6 +95,10 @@ if __name__ == "__main__":
         "conf_noobj",
     ]
 
+    cumulativeLoss = 0
+    analytics = Analytics()
+
+
     for epoch in range(opt.epochs):
         model.train()
         start_time = time.time()
@@ -105,6 +110,7 @@ if __name__ == "__main__":
 
             loss, outputs = model(imgs, targets)
             loss.backward()
+            cumulativeLoss += loss.item()
 
             if batches_done % opt.gradient_accumulations:
                 # Accumulates gradient before each step
@@ -147,6 +153,10 @@ if __name__ == "__main__":
             print(log_str)
 
             model.seen += imgs.size(0)
+
+        # Log cumulative loss and reset it
+        analytics.LogEpochLoss(epoch, cumulativeLoss)
+        cumulativeLoss = 0
 
         if epoch % opt.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
