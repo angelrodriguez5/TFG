@@ -1,0 +1,30 @@
+### Conexión a ssh:
+
+-conctarse al server
+
+	ssh angel@enterprise.dc.fi.es
+
+-pass = angel.1
+
+-conectarse al equipo desde el server
+
+	ssh angel@ymir
+
+-pass = a.rodriguez5
+
+
+### Dejar procesos corriendo en la máquina:
+
+- Usar el comando para abrir una consola cuyos procesos
+no terminan al cerrarla
+
+	screen
+
+ejecutar procesos en la consola y cerrar usando la 'X'
+
+para visualizar esa consola de nuevo, volver a conectar al
+equipo y usar:
+
+	screen -r [proceso]
+
+para auto-completar el proceso usar el tabulador
