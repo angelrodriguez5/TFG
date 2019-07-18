@@ -30,6 +30,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 		dataset, batch_size=batch_size, shuffle=False, num_workers=1, collate_fn=dataset.collate_fn
 	)
 
+	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 	cumulativeLoss = 0
@@ -44,7 +45,8 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 		targets[:, 2:] *= img_size
 
 		imgs = Variable(imgs.type(Tensor), requires_grad=False)
-
+		targets = Variable(targets.to(device), requires_grad=False)
+		
 		with torch.no_grad():
 			loss, outputs = model(imgs, targets)
 			outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
