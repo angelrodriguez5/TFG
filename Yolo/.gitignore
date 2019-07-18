@@ -12,5 +12,4 @@ __pycache__
 checkpoints
 logs
 *.pth
-data
 analytics
