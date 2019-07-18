@@ -5,6 +5,7 @@ from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
 
+
 import os
 import sys
 import time
@@ -31,6 +32,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
 	Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
+	cumulativeLoss = 0
 	labels = []
 	sample_metrics = []  # List of tuples (TP, confs, pred)
 	for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
@@ -44,11 +46,13 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 		imgs = Variable(imgs.type(Tensor), requires_grad=False)
 
 		with torch.no_grad():
-			outputs = model(imgs)
+			loss, outputs = model(imgs, targets)
 			outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
+		cumulativeLoss += loss
 		sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
 
+	# In case of no outputs, load dummy sample metrics to avoid crashing
 	if (len(sample_metrics) == 0):
 		#Dummy metrics
 		sample_metrics = [[[0], torch.Tensor([0]), torch.Tensor([0])]]
@@ -57,7 +61,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 	true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
 	precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
-	return precision, recall, AP, f1, ap_class
+	return precision, recall, AP, f1, ap_class, cumulativeLoss
 
 
 if __name__ == "__main__":
@@ -92,7 +96,7 @@ if __name__ == "__main__":
 
 	print("Compute mAP...")
 
-	precision, recall, AP, f1, ap_class = evaluate(
+	precision, recall, AP, f1, ap_class, validLoss = evaluate(
 		model,
 		path=valid_path,
 		iou_thres=opt.iou_thres,

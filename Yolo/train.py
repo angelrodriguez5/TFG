@@ -161,7 +161,7 @@ if __name__ == "__main__":
         if epoch % opt.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
             # Evaluate the model on the validation set
-            precision, recall, AP, f1, ap_class = evaluate(
+            precision, recall, AP, f1, ap_class, validLoss = evaluate(
                 model,
                 path=valid_path,
                 iou_thres=0.5,
@@ -177,6 +177,7 @@ if __name__ == "__main__":
                 ("val_f1", f1.mean()),
             ]
             logger.list_of_scalars_summary(evaluation_metrics, epoch)
+            analytics.LogValidLoss(epoch, validLoss)
 
             # Print class APs and mAP
             ap_table = [["Index", "Class name", "AP"]]
