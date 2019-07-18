@@ -37,7 +37,8 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 	labels = []
 	sample_metrics = []  # List of tuples (TP, confs, pred)
 	for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
-
+		# import targets to CUDA
+		cudaTargets = Variable(targets.to(device), requires_grad=False)
 		# Extract labels
 		labels += targets[:, 1].tolist()
 		# Rescale target
@@ -45,10 +46,9 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 		targets[:, 2:] *= img_size
 
 		imgs = Variable(imgs.type(Tensor), requires_grad=False)
-		targets = Variable(targets.to(device), requires_grad=False)
-		
+
 		with torch.no_grad():
-			loss, outputs = model(imgs, targets)
+			loss, outputs = model(imgs, cudaTargets)
 			outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
 		cumulativeLoss += loss
