@@ -80,12 +80,12 @@ class Mark(patches.Rectangle):
     def calcBoxXY(self):
         # Calculate the position of the corner of the box taking into account the offset
         if (self.customSize):
-            newX = self.center[0] - math.floor(self.customSize[0] / 2) - .5
-            newY = self.center[1] - math.floor(self.customSize[1] / 2) - .5
+            cornerX = self.center[0] - math.floor(self.customSize[0] / 2) - .5
+            cornerY = self.center[1] - math.floor(self.customSize[1] / 2) - .5
         else:
-            newX = self.center[0] - math.floor(self.DEFAULT_SIZE[0] / 2) - .5
-            newY = self.center[1] - math.floor(self.DEFAULT_SIZE[1] / 2) - .5
-        return (newX, newY)
+            cornerX = self.center[0] - math.floor(self.DEFAULT_SIZE[0] / 2) - .5
+            cornerY = self.center[1] - math.floor(self.DEFAULT_SIZE[1] / 2) - .5
+        return (cornerX, cornerY)
 
     def normalise(self, imgDimensions):
         # Return a tuple with the class number, center coordinates and dimensions
@@ -194,7 +194,7 @@ class AddRegionState(State):
         if (top > bot or left > right):
             raise Exception
 
-        # Calculate center pixel favouring bottom and right for pair length sections
+        # Calculate center pixel favouring bottom and right for pair dimensions
         cx = math.ceil((left + right) / 2)
         cy = math.ceil((top + bot) / 2)
 
@@ -333,6 +333,7 @@ class GUI(object):
                 ax.add_patch(mark)
         #end if
 
+    def show(self):
         # Show figure
         plt.show()
     
@@ -436,6 +437,7 @@ def main():
     if (filename):
         # Execute GUI
         gui = GUI(filename)
+        gui.show()
     else:
         print('Cancelled')
 

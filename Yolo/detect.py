@@ -3,6 +3,7 @@ from __future__ import division
 from models import *
 from utils.utils import *
 from utils.datasets import *
+from utils.CustomDatasetExporter import Mark
 
 import os
 import sys
@@ -87,10 +88,6 @@ if __name__ == "__main__":
         imgs.extend(img_paths)
         img_detections.extend(detections)
 
-    # Bounding-box colors
-    cmap = plt.get_cmap("tab20b")
-    colors = [cmap(i) for i in np.linspace(0, 1, 20)]
-
     print("\nSaving images:")
     # Iterate through images and save plot of detections
     for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
@@ -99,41 +96,86 @@ if __name__ == "__main__":
 
         # Create plot
         img = np.array(Image.open(path))
+        imgDim = img.shape[:2]
         plt.figure()
         fig, ax = plt.subplots(1)
         ax.imshow(img)
 
+        # If .txt file exists, load existing marks
+        targetMarks = []
+        fileName = os.path.splitext(path)[0] + '.txt'
+        if (os.path.isfile(fileName)):
+            f = open(fileName, 'r')
+            for line in f:
+                # Cast array of string to floats
+                array = [float(x) for x in line.split()]
+                # Cast class number to int
+                array[0] = int(array[0])
+                # Populate target list with marks in the file
+                mark = Mark.buildFromNorm(array, imgDim)
+                targetMarks.append(mark)
+
         # Draw bounding boxes and labels of detections
+        detectedMarks = []
         if detections is not None:
             # Rescale boxes to original image
-            detections = rescale_boxes(detections, opt.img_size, img.shape[:2])
-            unique_labels = detections[:, -1].cpu().unique()
-            n_cls_preds = len(unique_labels)
-            bbox_colors = random.sample(colors, n_cls_preds)
+            detections = rescale_boxes(detections, opt.img_size, imgDim)
+
             for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
 
                 print("\t+ Label: %s, Conf: %.5f" % (classes[int(cls_pred)], cls_conf.item()))
+                
+                classNum = int(cls_pred)
+                cx = math.ceil((x1 + x2) / 2)
+                cy = math.ceil((y1 + y2) / 2)
+                w = x2 - x1
+                h = y2 - y1
+                # Populate detection list with marks
+                mark = Mark(classNum,(cx,cy), (w,h))
+                detectedMarks.append(mark)
 
-                box_w = x2 - x1
-                box_h = y2 - y1
+        # Filter marks and set colors acordingly for display
+        C_TP = 'g'
+        C_FP = 'r'
+        C_FN = 'b'
+        displayMarks = []
+        # confusion count variables
+        TP = 0
+        FP = 0
+        FN = 0
+        P = len(targetMarks)
+        # For each detection check if it was a target
+        for detected in detectedMarks:
+            tp = False
+            for target in targetMarks:
+                if (isCorrectDetection(detected,target)):
+                    # True positive
+                    tp = True
+                    TP += 1
+                    detected.set_color(C_TP)
+                    # Delete target to avoid counting duplicate detections as true positives
+                    targetMarks.remove(target)
+                    break
 
-                color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
-                # Create a Rectangle patch
-                bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=1, edgecolor='b', facecolor="none")
-                # Add the bbox to the plot
-                ax.add_patch(bbox)
-                '''
-                # Add label
-                plt.text(
-                    x1,
-                    y1,
-                    s=classes[int(cls_pred)],
-                    color="white",
-                    verticalalignment="top",
-                    bbox={"color": color, "pad": 0},
-                )
-                '''
+            # Something was detected but is not one of the targets
+            if (not tp):
+                # False positive
+                FP += 1
+                detected.set_color(C_FP)
 
+            # Add detection with update color to list
+            displayMarks.append(detected)
+
+        # The rest of the targets are false negatives
+        for target in targetMarks:
+            target.set_color(C_FN)
+        FN = len(targetMarks)
+        displayMarks += targetMarks
+
+        # Add marks to plot
+        for mark in displayMarks:
+            ax.add_patch(mark)
+            
         # Save generated image with detections
         plt.axis("off")
         plt.gca().xaxis.set_major_locator(NullLocator())
@@ -141,3 +183,6 @@ if __name__ == "__main__":
         filename = path.split("/")[-1].split(".")[0]
         plt.savefig(f"output/{filename}.png", bbox_inches="tight", pad_inches=0.0)
         plt.close()
+
+def isCorrectDetection(detected, target):
+    pass
