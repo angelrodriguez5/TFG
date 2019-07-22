@@ -25,12 +25,12 @@ class Mark(patches.Rectangle):
         - customSize
     '''
 
-    def __init__(self, center, classNum, customSize = None):
+    def __init__(self, classNum, center, customSize = None):
         # Create patch
         super().__init__(center, 1, 1)
-
-        self.center = center
+        
         self.classNum = classNum    
+        self.center = center
         self.customSize = customSize  
         # Update the view to match current mode
         self.updateView()
@@ -108,7 +108,7 @@ class Mark(patches.Rectangle):
         w = round(width * nw)
         h = round(height * nh)
 
-        return Mark((cx,cy), classNum, (w,h))
+        return Mark(classNum, (cx,cy), (w,h))
 
 
 #endregion
@@ -137,7 +137,7 @@ class AddPointState(State):
         except StopIteration:
             # if it is not found, add it to the mark list
             # Create mark at center point with default size
-            mark = Mark(xy, classNum)
+            mark = Mark(classNum, xy)
             marks.append(mark)
             # And to the figure
             ax.add_patch(mark)
@@ -173,7 +173,7 @@ class AddRegionState(State):
                 return
             except StopIteration:
                 # if it is not found, add mark with custom size to the list
-                mark = Mark(cxy, classNum, size)
+                mark = Mark(classNum, cxy, size)
                 marks.append(mark)
             
                 # Reference to the subplot clicked
@@ -319,15 +319,13 @@ class GUI(object):
         if (os.path.isfile(fileName)):
             f = open(fileName, 'r')
             height, width, channels = self.img.shape
-            while (True):
-                line = f.readline()
-                if line == '': break
+            for line in f:
                 # Cast array of string to floats
                 array = [float(x) for x in line.split()]
                 # Cast class number to int
                 array[0] = int(array[0])
                 # Populate mark list with existing marks in the file
-                mark = Mark.buildFromNorm(tuple(array), (width, height))
+                mark = Mark.buildFromNorm(array, (width, height))
                 marks.append(mark)
 
             # Add marks to plot
