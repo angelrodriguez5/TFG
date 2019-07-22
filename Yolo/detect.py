@@ -26,8 +26,8 @@ from matplotlib.ticker import NullLocator
 def isCorrectDetection(detected, target):
     threshold = 25
     # Distance between centers 
-    dx, dy = detected.get_center()
-    tx, ty = target.get_center()
+    dx, dy = detected.getCenter()
+    tx, ty = target.getCenter()
 
     distance = math.sqrt( ((dx-tx)**2)+((dy-ty)**2) )
 
