@@ -103,7 +103,8 @@ if __name__ == "__main__":
 
         # If .txt file exists, load existing marks
         targetMarks = []
-        fileName = os.path.splitext(path)[0] + '.txt'
+        fileName = path.replace("test_img", "test_tag").replace(".png", ".txt")
+
         if (os.path.isfile(fileName)):
             f = open(fileName, 'r')
             for line in f:
@@ -175,7 +176,7 @@ if __name__ == "__main__":
         # Add marks to plot
         for mark in displayMarks:
             ax.add_patch(mark)
-            
+
         # Save generated image with detections
         plt.axis("off")
         plt.gca().xaxis.set_major_locator(NullLocator())
