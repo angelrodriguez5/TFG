@@ -10,6 +10,7 @@ import sys
 import time
 import datetime
 import argparse
+import math
 
 from PIL import Image
 
@@ -21,6 +22,17 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
+
+def isCorrectDetection(detected, target):
+    threshold = 25
+    # Distance between centers 
+    dx, dy = detected.get_center()
+    tx, ty = target.get_center()
+
+    distance = math.sqrt( ((dx-tx)**2)+((dy-ty)**2) )
+
+    return distance <= threshold
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -184,6 +196,3 @@ if __name__ == "__main__":
         filename = path.split("/")[-1].split(".")[0]
         plt.savefig(f"output/{filename}.png", bbox_inches="tight", pad_inches=0.0)
         plt.close()
-
-def isCorrectDetection(detected, target):
-    pass
