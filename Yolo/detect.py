@@ -197,7 +197,7 @@ if __name__ == "__main__":
         # Confusion matrix
         recall = TP / P
         miss_rate = FN / P
-        precission = TP / TP + FP
+        precission =  0 if (TP + FP) == 0 else TP / TP + FP
         # Print confusion matrix
         print('Confusion matrix for image: %s' % (path))
         table = [["recall", "miss rate", "Precission"], [recall, miss_rate, precission]]

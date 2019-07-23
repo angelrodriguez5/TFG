@@ -42,3 +42,4 @@ class Analytics(object):
             f.write("Img: %s\n" % (img))
             for metric, value in confusionDict:
                 f.write("\t%s: %s\n" % (metric, value))
+        f.close()
