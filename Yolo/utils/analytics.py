@@ -38,8 +38,8 @@ class Analytics(object):
     def logTestResults(self, epoch, resultDict):
         filename = "analytics/test_epoch_%d.txt" % (epoch)
         f = open(filename, "w")
-        for img, confusionDict in resultDict:
+        for img, confusionDict in resultDict.items():
             f.write("Img: %s\n" % (img))
-            for metric, value in confusionDict:
+            for metric, value in confusionDict.items():
                 f.write("\t%s: %s\n" % (metric, value))
         f.close()
