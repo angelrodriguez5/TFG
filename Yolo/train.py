@@ -6,6 +6,7 @@ from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
 from utils.analytics import Analytics
+from utils.exportResults import *
 from test import evaluate
 
 from terminaltables import AsciiTable
@@ -25,6 +26,7 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--experiment_name", type=str, default="DEFAULT", help="name of the folder to save analytics, logs...")
     parser.add_argument("--epochs", type=int, default=500, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
@@ -35,6 +37,7 @@ if __name__ == "__main__":
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--checkpoint_interval", type=int, default=5, help="interval between saving model weights")
     parser.add_argument("--evaluation_interval", type=int, default=1, help="interval evaluations on validation set")
+    parser.add_argument("--test_interval", type=int, default=5, help="interval evaluations on test set")
     parser.add_argument("--compute_map", default=False, help="if True computes mAP every tenth batch")
     parser.add_argument("--multiscale_training", default=True, help="allow for multi-scale training")
     opt = parser.parse_args()
@@ -188,3 +191,10 @@ if __name__ == "__main__":
 
         if epoch % opt.checkpoint_interval == 0:
             torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)
+
+        if epoch % opt.test_interval == 0:
+            # Execute test
+            pass
+
+    # Export the results of the training
+    exportResults(opt.experiment_name)
