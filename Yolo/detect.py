@@ -4,6 +4,7 @@ from models import *
 from utils.utils import *
 from utils.datasets import *
 from utils.CustomDatasetExporter import Mark
+from utils.analytics import Analytics
 
 from terminaltables import AsciiTable
 
@@ -104,12 +105,15 @@ if __name__ == "__main__":
         imgs.extend(img_paths)
         img_detections.extend(detections)
 
+    # Dictionary to store confusion matrix of test images
+    confusionDict = {}
+
     print("\nSaving images:")
     # Iterate through images and save plot of detections
     for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
 
         print("(%d) Image: '%s'" % (img_i, path))
-
+        
         # Create plot
         img = np.array(Image.open(path))
         height, width, channels = img.shape
@@ -161,6 +165,7 @@ if __name__ == "__main__":
         FP = 0
         FN = 0
         P = len(targetMarks)
+
         # For each detection check if it was a target
         for detected in detectedMarks:
             tp = False
@@ -190,13 +195,17 @@ if __name__ == "__main__":
         displayMarks += targetMarks
 
         # Confusion matrix
-        TPR = TP / P
-        FNR = FN / P
-
+        recall = TP / P
+        miss_rate = FN / P
+        precission = TP / TP + FP
         # Print confusion matrix
         print('Confusion matrix for image: %s' % (path))
-        table = [["TPR", "FNR"], [TPR, FNR]]
+        table = [["recall", "miss rate", "Precission"], [recall, miss_rate, precission]]
         print(AsciiTable(table).table)
+        print('\n')
+        # Add confusion matrix to dictionary
+        myConfusion = {"recall":recall, "miss_rate":miss_rate, "precission":precission}
+        confusionDict[path] = myConfusion
 
         # Add marks to plot
         for mark in displayMarks:
@@ -209,3 +218,7 @@ if __name__ == "__main__":
         filename = path.split("/")[-1].split(".")[0]
         plt.savefig(f"output/{filename}.png", bbox_inches="tight", pad_inches=0.0)
         plt.close()
+
+    # Log confusion of test images
+    epoch = 1
+    Analytics().logTestResults(epoch, confusionDict)

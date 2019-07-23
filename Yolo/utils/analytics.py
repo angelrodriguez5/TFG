@@ -34,3 +34,11 @@ class Analytics(object):
     def LogValidLoss(self, epoch, loss):
         line = '%d %f\n' % (epoch, loss)
         self.validLossFile.write(line)
+
+    def logTestResults(self, epoch, resultDict):
+        filename = "analytics/test_epoch_%d.txt" % (epoch)
+        f = open(filename, "w")
+        for img, confusionDict in resultDict:
+            f.write("Img: %s\n" % (img))
+            for metric, value in confusionDict:
+                f.write("\t%s: %s\n" % (metric, value))
