@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
         # Create plot
         img = np.array(Image.open(path))
-        imgDim = img.shape[:2]
+        height, width, channels = img.shape
         plt.figure()
         fig, ax = plt.subplots(1)
         ax.imshow(img)
@@ -125,14 +125,14 @@ if __name__ == "__main__":
                 # Cast class number to int
                 array[0] = int(array[0])
                 # Populate target list with marks in the file
-                mark = Mark.buildFromNorm(array, imgDim)
+                mark = Mark.buildFromNorm(array, (width, height))
                 targetMarks.append(mark)
 
         # Draw bounding boxes and labels of detections
         detectedMarks = []
         if detections is not None:
             # Rescale boxes to original image
-            detections = rescale_boxes(detections, opt.img_size, imgDim)
+            detections = rescale_boxes(detections, opt.img_size, img.shape[:2])
 
             for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
 
