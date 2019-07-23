@@ -5,6 +5,8 @@ from utils.utils import *
 from utils.datasets import *
 from utils.CustomDatasetExporter import Mark
 
+from terminaltables import AsciiTable
+
 import os
 import sys
 import time
@@ -23,7 +25,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
 
+# Mark -> Mark -> Bool
 def isCorrectDetection(detected, target):
+    # TODO iou instead of distance
     threshold = 25
     # Distance between centers 
     dx, dy = detected.getCenter()
@@ -184,6 +188,15 @@ if __name__ == "__main__":
             target.set_color(C_FN)
         FN = len(targetMarks)
         displayMarks += targetMarks
+
+        # Confusion matrix
+        TPR = TP / P
+        FNR = FN / P
+
+        # Print confusion matrix
+        print('Confusion matrix for image: %s' % (path))
+        table = [["TPR", "FNR"], [TPR, FNR]]
+        print(AsciiTable(table).table)
 
         # Add marks to plot
         for mark in displayMarks:
