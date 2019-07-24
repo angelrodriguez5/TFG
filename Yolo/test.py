@@ -39,6 +39,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 	Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 	cumulativeLoss = 0
+	totalImgs = 0
 	labels = []
 	sample_metrics = []  # List of tuples (TP, confs, pred)
 	for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
@@ -50,6 +51,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 		targets[:, 2:] = xywh2xyxy(targets[:, 2:])
 		targets[:, 2:] *= img_size
 
+		totalImgs += len(imgs)
 		imgs = Variable(imgs.type(Tensor), requires_grad=False)
 
 		with torch.no_grad():
@@ -68,7 +70,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 	true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
 	precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
-	return precision, recall, AP, f1, ap_class, cumulativeLoss
+	return precision, recall, AP, f1, ap_class, cumulativeLoss, totalImgs
 
 # Mark -> Mark -> Bool
 def isCorrectDetection(detected, target):
@@ -269,7 +271,7 @@ if __name__ == "__main__":
 
 	print("Compute mAP...")
 
-	precision, recall, AP, f1, ap_class, validLoss = evaluate(
+	precision, recall, AP, f1, ap_class, validLoss, totalImgs = evaluate(
 		model,
 		path=valid_path,
 		iou_thres=opt.iou_thres,

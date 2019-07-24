@@ -105,10 +105,14 @@ if __name__ == "__main__":
 
     for epoch in range(opt.epochs):
         model.train()
+        totalImgs = 0
+        cumulativeLoss = 0
+
         start_time = time.time()
         for batch_i, (_, imgs, targets) in enumerate(dataloader):
             batches_done = len(dataloader) * epoch + batch_i
 
+            totalImgs += len(imgs)
             imgs = Variable(imgs.to(device))
             targets = Variable(targets.to(device), requires_grad=False)
 
@@ -159,13 +163,12 @@ if __name__ == "__main__":
             model.seen += imgs.size(0)
 
         # Log cumulative loss and reset it
-        analytics.LogEpochLoss(epoch, cumulativeLoss)
-        cumulativeLoss = 0
+        analytics.LogEpochLoss(epoch, cumulativeLoss, totalImgs)
 
         if epoch % opt.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
             # Evaluate the model on the validation set
-            precision, recall, AP, f1, ap_class, validLoss = evaluate(
+            precision, recall, AP, f1, ap_class, validLoss, totalImgs = evaluate(
                 model,
                 path=valid_path,
                 iou_thres=0.5,
@@ -181,7 +184,7 @@ if __name__ == "__main__":
                 ("val_f1", f1.mean()),
             ]
             logger.list_of_scalars_summary(evaluation_metrics, epoch)
-            analytics.LogValidLoss(epoch, validLoss)
+            analytics.LogValidLoss(epoch, validLoss, totalImgs)
 
             # Print class APs and mAP
             ap_table = [["Index", "Class name", "AP"]]

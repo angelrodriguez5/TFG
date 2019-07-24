@@ -302,7 +302,7 @@ class GUI(object):
         self.imgPath = path
         # Open image in bgr
         self.img = cv2.imread(self.imgPath)
-        # Conver to rbg to show it
+        # Convert to rgb to show it
         rgb = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
         # Configure figure

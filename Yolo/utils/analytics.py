@@ -27,12 +27,12 @@ class Analytics(object):
         self.epochLossFile = open("analytics/epochLoss.txt", "w")
         self.validLossFile = open("analytics/validLoss.txt", "w")
 
-    def LogEpochLoss(self, epoch, loss):
-        line = '%d %f\n' % (epoch, loss)
+    def LogEpochLoss(self, epoch, loss, numImgs):
+        line = '%d %f %d\n' % (epoch, loss, numImgs)
         self.epochLossFile.write(line)
 
-    def LogValidLoss(self, epoch, loss):
-        line = '%d %f\n' % (epoch, loss)
+    def LogValidLoss(self, epoch, loss, numImgs):
+        line = '%d %f %d\n' % (epoch, loss, numImgs)
         self.validLossFile.write(line)
 
     def logTestResults(self, epoch, resultDict):
