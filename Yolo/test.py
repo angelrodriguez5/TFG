@@ -85,6 +85,8 @@ def isCorrectDetection(detected, target):
 def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0.4, batch_size=1, n_cpu=0, img_size=416):
     model.eval()  # Set in evaluation mode
 
+    os.makedirs("output/test_epoch_%d"%(epoch), exist_ok=True)
+
     dataloader = DataLoader(
         ImageFolder(image_folder, img_size=img_size),
         batch_size=batch_size,
