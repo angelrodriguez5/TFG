@@ -42,4 +42,5 @@ class Analytics(object):
             f.write("%s\n" % (img))
             for metric, value in confusionDict.items():
                 f.write("\t%s : %s\n" % (metric, value))
+        # TODO average epoch analytics
         f.close()
