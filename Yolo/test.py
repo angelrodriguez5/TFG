@@ -136,10 +136,9 @@ def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0
         fig, ax = plt.subplots(1)
         ax.imshow(img)
 
-        # If .txt file exists, load existing marks
+        # Load test set marks
         targetMarks = []
         fileName = path.replace("_img", "_tag").replace(".png", ".txt")
-
         if (os.path.isfile(fileName)):
             f = open(fileName, 'r')
             for line in f:
@@ -151,11 +150,11 @@ def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0
                 mark = Mark.buildFromNorm(array, (width, height))
                 targetMarks.append(mark)
 
-        # Draw bounding boxes and labels of detections
+        # Transform detections to marks
         detectedMarks = []
         if detections is not None:
             # Rescale boxes to original image
-            detections = rescale_boxes(detections, opt.img_size, img.shape[:2])
+            detections = rescale_boxes(detections, img_size, img.shape[:2])
 
             for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
 
@@ -232,7 +231,7 @@ def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0
         plt.gca().yaxis.set_major_locator(NullLocator())
         filename = path.split("/")[-1].split(".")[0]
         plt.savefig("output/test_epoch_%d/%s.png" % (epoch,filename), bbox_inches="tight", pad_inches=0.0)
-        plt.close()
+        plt.close('all')
 
     # Log confusion of test images
     Analytics().logTestResults(epoch, confusionDict)
