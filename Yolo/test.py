@@ -237,7 +237,7 @@ def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0
 
     # Log confusion of test images
     Analytics().logTestResults(epoch, confusionDict)
-    print("Done!")
+    print("Done testing!")
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
