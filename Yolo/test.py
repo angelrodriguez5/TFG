@@ -213,7 +213,7 @@ def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0
         # Confusion matrix
         recall = TP / P
         miss_rate = FN / P
-        precission =  0 if (TP + FP) == 0 else TP / TP + FP
+        precission =  0 if (TP + FP) == 0 else TP / (TP + FP)
         # Print confusion matrix
         print('Confusion matrix for image: %s' % (path))
         table = [["recall", "miss rate", "Precission"], [recall, miss_rate, precission]]

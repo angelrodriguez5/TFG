@@ -1,4 +1,5 @@
 import os
+import json
 
 class Analytics(object):
 
@@ -36,11 +37,7 @@ class Analytics(object):
         self.validLossFile.write(line)
 
     def logTestResults(self, epoch, resultDict):
-        filename = "analytics/test_epoch_%d.txt" % (epoch)
+        filename = "analytics/test_epoch_%d.json" % (epoch)
         f = open(filename, "w")
-        for img, confusionDict in resultDict.items():
-            f.write("%s\n" % (img))
-            for metric, value in confusionDict.items():
-                f.write("\t%s : %s\n" % (metric, value))
-        # TODO average epoch analytics
+        json.dump(resultDict, f)
         f.close()
