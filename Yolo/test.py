@@ -55,7 +55,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
             loss, outputs = model(imgs, cudaTargets)
             outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
-        imgLoss += loss
+        imgLoss += loss.item()
         sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
 
     # In case of no outputs, load dummy sample metrics to avoid crashing
