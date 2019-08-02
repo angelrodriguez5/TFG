@@ -270,13 +270,17 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
 
         imgs = Variable(imgs.type(Tensor), requires_grad=False)
 
-        with torch.no_grad():
-            loss, outputs = model(imgs, cudaTargets)
-            outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
-
         if negative_test:
+            # Test model in images without objects
+            with torch.no_grad():
+                outputs = model(imgs)
+                outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
             fp += len(outputs)
         else:
+            # Test model in images with objects
+            with torch.no_grad():
+                loss, outputs = model(imgs, cudaTargets)
+                outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
             imgLoss += [loss.item()]
             sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
 
