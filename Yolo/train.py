@@ -5,7 +5,6 @@ from utils.logger import *
 from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
-from utils.analytics import Analytics
 from utils.exportResults import *
 from test import *
 
@@ -26,8 +25,8 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment_name", type=str, default="pretrained_tttvx", help="name of the folder to save analytics, logs...")
-    parser.add_argument("--epochs", type=int, default=501, help="number of epochs")
+    parser.add_argument("--experiment_name", type=str, default="pretrained_tttvx", help="name of the folder to save logs, checkpoints...")
+    parser.add_argument("--epochs", type=int, default=5, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
     parser.add_argument("--model_def", type=str, default="config/customModelDef.cfg", help="path to model definition file")
@@ -35,9 +34,9 @@ if __name__ == "__main__":
     parser.add_argument("--pretrained_weights", type=str, default="weights/darknet53.conv.74", help="if specified starts from checkpoint model")
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
-    parser.add_argument("--checkpoint_interval", type=int, default=50, help="interval between saving model weights")
+    parser.add_argument("--checkpoint_interval", type=int, default=5, help="interval between saving model weights")
     parser.add_argument("--evaluation_interval", type=int, default=1, help="interval evaluations on validation set")
-    parser.add_argument("--test_interval", type=int, default=25, help="interval evaluations on test set")
+    parser.add_argument("--test_interval", type=int, default=1, help="interval evaluations on test set")
     parser.add_argument("--compute_map", default=False, help="if True computes mAP every tenth batch")
     parser.add_argument("--multiscale_training", default=True, help="allow for multi-scale training")
     opt = parser.parse_args()
@@ -54,7 +53,8 @@ if __name__ == "__main__":
     data_config = parse_data_config(opt.data_config)
     train_path = data_config["train"]
     valid_path = data_config["valid"]
-    test_path = data_config["test"]
+    pos_test_path = data_config["pos_test"]
+    neg_test_path = data_config["neg_test"]
     class_names = load_classes(data_config["names"])
 
     # Initiate model
@@ -100,8 +100,6 @@ if __name__ == "__main__":
     ]
 
     cumulativeLoss = 0
-    analytics = Analytics()
-
 
     for epoch in range(opt.epochs):
         model.train()
@@ -162,13 +160,10 @@ if __name__ == "__main__":
 
             model.seen += imgs.size(0)
 
-        # Log cumulative loss and reset it
-        analytics.LogEpochLoss(epoch, cumulativeLoss, totalImgs)
-
         if epoch % opt.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
             # Evaluate the model on the validation set
-            precision, recall, AP, f1, ap_class, validLoss, totalImgs = evaluate(
+            precision, recall, AP, f1, ap_class, loss = evaluate(
                 model,
                 path=valid_path,
                 iou_thres=0.5,
@@ -182,23 +177,63 @@ if __name__ == "__main__":
                 ("val_recall", recall.mean()),
                 ("val_mAP", AP.mean()),
                 ("val_f1", f1.mean()),
+                ("val_loss", loss.mean())
             ]
             logger.list_of_scalars_summary(evaluation_metrics, epoch)
-            analytics.LogValidLoss(epoch, validLoss, totalImgs)
 
-            # Print class APs and mAP
-            ap_table = [["Index", "Class name", "AP"]]
-            for i, c in enumerate(ap_class):
-                ap_table += [[c, class_names[c], "%.5f" % AP[i]]]
-            print(AsciiTable(ap_table).table)
+            # Print class mAP
             print(f"---- mAP {AP.mean()}")
+            print()
+
+        if epoch % opt.test_interval == 0:
+            print("\n---- Testing Model ----")
+
+            # Test the model on images with bleeding
+            print("\n---- Positive test ----")
+            precision, recall, AP, f1, ap_class, loss, _ = performTest(
+                model,
+                path=pos_test_path,
+                iou_thres=0.5,
+                conf_thres=0.5,
+                nms_thres=0.5,
+                img_size=opt.img_size,
+                batch_size=8,
+                negative_test=False
+            )
+            evaluation_metrics = [
+                ("test_precision", precision.mean()),
+                ("test_recall", recall.mean()),
+                ("test_mAP", AP.mean()),
+                ("test_f1", f1.mean()),
+                ("test_loss", loss.mean())
+            ]
+            logger.list_of_scalars_summary(evaluation_metrics, epoch)
+
+            print(f"---- mAP {AP.mean()}")
+
+            # Test the model on images without bleeding
+            print("\n---- Negative test ----")
+            _, _, _, _, _, _, falsePositives = performTest(
+                model,
+                path=neg_test_path,
+                iou_thres=0.5,
+                conf_thres=0.5,
+                nms_thres=0.5,
+                img_size=opt.img_size,
+                batch_size=8,
+                negative_test=True
+            )
+
+            evaluation_metrics = [
+                ("neg_test_#FP", falsePositives.sum()),
+                ("neg_test_mFP", falsePositives.mean())
+            ]
+            logger.list_of_scalars_summary(evaluation_metrics, epoch)
+
 
         if epoch % opt.checkpoint_interval == 0:
             torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)
 
-        if epoch % opt.test_interval == 0:
-            # Execute test
-            performTest(model, class_names, test_path, epoch)
 
     # Export the results of the training
     exportResults(opt.experiment_name)

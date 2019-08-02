@@ -4,7 +4,6 @@ from models import *
 from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
-from utils.analytics import Analytics
 from utils.CustomDatasetExporter import Mark
 
 from terminaltables import AsciiTable
@@ -27,50 +26,48 @@ import torch.optim as optim
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size):
-	model.eval()
+    model.eval()
 
-	# Get dataloader
-	dataset = ListDataset(path, img_size=img_size, augment=False, multiscale=False)
-	dataloader = torch.utils.data.DataLoader(
-		dataset, batch_size=batch_size, shuffle=False, num_workers=1, collate_fn=dataset.collate_fn
-	)
+    # Get dataloader
+    dataset = ListDataset(path, img_size=img_size, augment=False, multiscale=False)
+    dataloader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, shuffle=False, num_workers=1, collate_fn=dataset.collate_fn
+    )
 
-	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-	Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
-	cumulativeLoss = 0
-	totalImgs = 0
-	labels = []
-	sample_metrics = []  # List of tuples (TP, confs, pred)
-	for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
-		# import targets to CUDA
-		cudaTargets = Variable(targets.to(device), requires_grad=False)
-		# Extract labels
-		labels += targets[:, 1].tolist()
-		# Rescale target
-		targets[:, 2:] = xywh2xyxy(targets[:, 2:])
-		targets[:, 2:] *= img_size
+    imgLoss = []
+    labels = []
+    sample_metrics = []  # List of tuples (TP, confs, pred)
+    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
+        # import targets to CUDA
+        cudaTargets = Variable(targets.to(device), requires_grad=False)
+        # Extract labels
+        labels += targets[:, 1].tolist()
+        # Rescale target
+        targets[:, 2:] = xywh2xyxy(targets[:, 2:])
+        targets[:, 2:] *= img_size
 
-		totalImgs += len(imgs)
-		imgs = Variable(imgs.type(Tensor), requires_grad=False)
+        imgs = Variable(imgs.type(Tensor), requires_grad=False)
 
-		with torch.no_grad():
-			loss, outputs = model(imgs, cudaTargets)
-			outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
+        with torch.no_grad():
+            loss, outputs = model(imgs, cudaTargets)
+            outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
-		cumulativeLoss += loss
-		sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+        imgLoss += loss
+        sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
 
-	# In case of no outputs, load dummy sample metrics to avoid crashing
-	if (len(sample_metrics) == 0):
-		#Dummy metrics
-		sample_metrics = [[[0], torch.Tensor([0]), torch.Tensor([0])]]
+    # In case of no outputs, load dummy sample metrics to avoid crashing
+    if (len(sample_metrics) == 0):
+        #Dummy metrics
+        sample_metrics = [[[0], torch.Tensor([0]), torch.Tensor([0])]]
 
-	# Concatenate sample statistics
-	true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
-	precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
+    # Concatenate sample statistics
+    true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
+    precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
-	return precision, recall, AP, f1, ap_class, cumulativeLoss, totalImgs
+    return precision, recall, AP, f1, ap_class, np.array(imgLoss)
 
 # Mark -> Mark -> Bool
 def isCorrectDetection(detected, target):
@@ -78,13 +75,15 @@ def isCorrectDetection(detected, target):
     threshold = 25
     # Distance between centers 
     dx, dy = detected.getCenter()
+    dw, dh = detected.get_width(), detected.get_height()
     tx, ty = target.getCenter()
+    tw, th = target.get_width(), target.get_height()
 
     distance = math.sqrt( ((dx-tx)**2)+((dy-ty)**2) )
 
     return distance <= threshold
 
-def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0.4, batch_size=1, n_cpu=0, img_size=416):
+def performTest__OLD__(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0.4, batch_size=1, n_cpu=0, img_size=416):
     model.eval()  # Set in evaluation mode
 
     os.makedirs("output/test_epoch_%d"%(epoch), exist_ok=True)
@@ -186,7 +185,7 @@ def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0
         for detected in detectedMarks:
             tp = False
             for target in targetMarks:
-                if (isCorrectDetection(detected,target)):
+                if (isCorrectDetection(detected, target)):
                     # True positive
                     tp = True
                     TP += 1
@@ -236,53 +235,112 @@ def performTest(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0
         plt.close('all')
 
     # Log confusion of test images
-    Analytics().logTestResults(epoch, confusionDict)
     print("Done testing!")
 
+def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, negative_test):
+    """
+    returns (precision, recall, ap, fi, ap_class, loss, fp)
+    if negative_test then fp stores the number of detections (i.e. false positives) per image and the rest of elemenets are empty
+    otherwise fp is empty
+    """
+
+    model.eval()
+
+    # Get dataloader
+    dataset = ListDataset(path, img_size=img_size, augment=False, multiscale=False)
+    dataloader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, shuffle=False, num_workers=1, collate_fn=dataset.collate_fn
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+
+    imgLoss = []
+    fp = []
+    labels = []
+    sample_metrics = []  # List of tuples (TP, confs, pred)
+    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
+        # import targets to CUDA
+        cudaTargets = Variable(targets.to(device), requires_grad=False)
+        # Extract labels
+        labels += targets[:, 1].tolist()
+        # Rescale target
+        targets[:, 2:] = xywh2xyxy(targets[:, 2:])
+        targets[:, 2:] *= img_size
+
+        imgs = Variable(imgs.type(Tensor), requires_grad=False)
+
+        with torch.no_grad():
+            loss, outputs = model(imgs, cudaTargets)
+            outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
+
+        if negative_test:
+            fp += len(outputs)
+        else:
+            imgLoss += loss
+            sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+
+        # TODO save images with marks
+
+    if negative_test:
+        return [], [], [], [], [], [], np.array(fp)
+
+    # In case of no outputs, load dummy sample metrics to avoid crashing
+    if (len(sample_metrics) == 0):
+        #Dummy metrics
+        sample_metrics = [[[0], torch.Tensor([0]), torch.Tensor([0])]]
+
+    # Concatenate sample statistics
+    true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
+    precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
+
+    return precision, recall, AP, f1, ap_class, np.array(imgLoss), []
+
+
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-	parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
-	parser.add_argument("--model_def", type=str, default="config/customModelDef.cfg", help="path to model definition file")
-	parser.add_argument("--data_config", type=str, default="config/custom.data", help="path to data config file")
-	parser.add_argument("--weights_path", type=str, default="checkpoints/yolov3_ckpt_99.pth", help="path to weights file")
-	parser.add_argument("--class_path", type=str, default="data/custom/classes.names", help="path to class label file")
-	parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
-	parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
-	parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
-	parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
-	parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
-	opt = parser.parse_args()
-	print(opt)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
+    parser.add_argument("--model_def", type=str, default="config/customModelDef.cfg", help="path to model definition file")
+    parser.add_argument("--data_config", type=str, default="config/custom.data", help="path to data config file")
+    parser.add_argument("--weights_path", type=str, default="checkpoints/yolov3_ckpt_99.pth", help="path to weights file")
+    parser.add_argument("--class_path", type=str, default="data/custom/classes.names", help="path to class label file")
+    parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
+    parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
+    parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
+    parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
+    parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
+    opt = parser.parse_args()
+    print(opt)
 
-	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-	data_config = parse_data_config(opt.data_config)
-	valid_path = data_config["valid"]
-	class_names = load_classes(data_config["names"])
+    data_config = parse_data_config(opt.data_config)
+    valid_path = data_config["valid"]
+    class_names = load_classes(data_config["names"])
 
-	# Initiate model
-	model = Darknet(opt.model_def).to(device)
-	if opt.weights_path.endswith(".weights"):
-		# Load darknet weights
-		model.load_darknet_weights(opt.weights_path)
-	else:
-		# Load checkpoint weights
-		model.load_state_dict(torch.load(opt.weights_path))
+    # Initiate model
+    model = Darknet(opt.model_def).to(device)
+    if opt.weights_path.endswith(".weights"):
+        # Load darknet weights
+        model.load_darknet_weights(opt.weights_path)
+    else:
+        # Load checkpoint weights
+        model.load_state_dict(torch.load(opt.weights_path))
 
-	print("Compute mAP...")
+    print("Compute mAP...")
 
-	precision, recall, AP, f1, ap_class, validLoss, totalImgs = evaluate(
-		model,
-		path=valid_path,
-		iou_thres=opt.iou_thres,
-		conf_thres=opt.conf_thres,
-		nms_thres=opt.nms_thres,
-		img_size=opt.img_size,
-		batch_size=8,
-	)
+    precision, recall, AP, f1, ap_class, validLoss, totalImgs = evaluate(
+        model,
+        path=valid_path,
+        iou_thres=opt.iou_thres,
+        conf_thres=opt.conf_thres,
+        nms_thres=opt.nms_thres,
+        img_size=opt.img_size,
+        batch_size=8,
+    )
 
-	print("Average Precisions:")
-	for i, c in enumerate(ap_class):
-		print(f"+ Class '{c}' ({class_names[c]}) - AP: {AP[i]}")
+    print("Average Precisions:")
+    for i, c in enumerate(ap_class):
+        print(f"+ Class '{c}' ({class_names[c]}) - AP: {AP[i]}")
 
-	print(f"mAP: {AP.mean()}")
+    print(f"mAP: {AP.mean()}")
