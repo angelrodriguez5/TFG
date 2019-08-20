@@ -162,6 +162,8 @@ def get_batch_statistics(outputs, targets, iou_threshold):
         if len(annotations):
             detected_boxes = []
             target_boxes = annotations[:, 1:]
+            # Every target is a false negative until it is detected and becomes a true positive
+            false_negatives = np.ones(target_boxes.shape[0])
 
             for pred_i, (pred_box, pred_label) in enumerate(zip(pred_boxes, pred_labels)):
 
@@ -176,8 +178,9 @@ def get_batch_statistics(outputs, targets, iou_threshold):
                 iou, box_index = bbox_iou(pred_box.unsqueeze(0), target_boxes).max(0)
                 if iou >= iou_threshold and box_index not in detected_boxes:
                     true_positives[pred_i] = 1
+                    false_negatives[box_index] = 0
                     detected_boxes += [box_index]
-        batch_metrics.append([true_positives, pred_scores, pred_labels])
+        batch_metrics.append([false_negatives, true_positives, pred_scores, pred_labels])
     return batch_metrics
 
 

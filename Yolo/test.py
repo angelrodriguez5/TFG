@@ -237,13 +237,62 @@ def performTest__OLD__(model, classes, image_folder, epoch, conf_thres=0.8, nms_
     # Log confusion of test images
     print("Done testing!")
 
-def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, negative_test):
-    """
-    returns (precision, recall, ap, fi, ap_class, loss, fp)
-    if negative_test then fp stores the number of detections (i.e. false positives) per image and the rest of elemenets are empty
-    otherwise fp is empty
-    """
+def addBox(ax, box, color):
+    x1, x2, y1, y2 = box
+    w = x2 - x1
+    h = y2 - y1
+    # Create a Rectangle patch
+    patch = patches.Rectangle((x1, y1), w, h, linewidth=1, edgecolor=color, facecolor="none")
+    ax.add_patch(patch)
 
+def printImageTest(paths, epoch, false_negatives, true_positives, targets, outputs):
+    """ Save a copy of the images with color coded rectangles denoting
+        true positives, false positives and false negatives """
+    # Color code for the rectangles
+    C_TP = 'g'
+    C_FP = 'r'
+    C_FN = 'b'
+
+    os.makedirs("output/test_epoch_%d"%(epoch), exist_ok=True)
+
+    print("\nSaving images:")
+    for sample_i in range(len(paths)):
+        # Create plot
+        img = np.array(Image.open(paths[sample_i]))
+        height, width, channels = img.shape
+        plt.figure()
+        fig, ax = plt.subplots(1)
+        ax.imshow(img)
+
+        output = outputs[sample_i]
+        pred_boxes = output[:, :4]
+
+        annotations = targets[targets[:, 0] == sample_i][:, 1:]
+        target_boxes = annotations[:, 1:]
+
+        for i, fn in enumerate(false_negatives[sample_i]):
+            if fn:
+                # False negative
+                addBox(ax, target_boxes[i], C_FN)
+
+        for i, tp in enumerate(true_positives[sample_i]):
+            if tp:
+                # True positive
+                addBox(ax, pred_boxes[i], C_TP)
+            else:
+                # False positive
+                addBox(ax, pred_boxes[i], C_FP)
+
+        # Save generated image with detections
+        plt.axis("off")
+        plt.gca().xaxis.set_major_locator(NullLocator())
+        plt.gca().yaxis.set_major_locator(NullLocator())
+        filename = paths[sample_i].split("/")[-1].split(".")[0]
+        plt.savefig("output/test_epoch_%d/%s.png" % (epoch,filename), bbox_inches="tight", pad_inches=0.0)
+        plt.close('all')
+
+
+def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, epoch):
     model.eval()
 
     # Get dataloader
@@ -256,10 +305,9 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
     imgLoss = []
-    fp = []
     labels = []
-    sample_metrics = []  # List of tuples (TP, confs, pred)
-    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
+    sample_metrics = []  # List of tuples (FN, TP, confs, pred)
+    for batch_i, (img_paths, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
         # import targets to CUDA
         cudaTargets = Variable(targets.to(device), requires_grad=False)
         # Extract labels
@@ -270,35 +318,29 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
 
         imgs = Variable(imgs.type(Tensor), requires_grad=False)
 
-        if negative_test:
-            # Test model in images without objects
-            with torch.no_grad():
-                outputs = model(imgs)
-                outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
-            fp += [len(outputs)]
-        else:
-            # Test model in images with objects
-            with torch.no_grad():
-                loss, outputs = model(imgs, cudaTargets)
-                outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
-            imgLoss += [loss.item()]
-            sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+        # Test model
+        with torch.no_grad():
+            loss, outputs = model(imgs, cudaTargets)
+            outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
-        # TODO save images with marks
+        imgLoss += [loss.item()]
+        batch_stats = get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+        sample_metrics += batch_stats
 
-    if negative_test:
-        return [], [], [], [], [], [], np.array(fp)
+        # Save images with color coded detections and targets
+        false_negatives, true_positives, _, _ = list(zip(*batch_stats))
+        printImageTest(img_paths, epoch, false_negatives, true_positives, targets, outputs)
 
     # In case of no outputs, load dummy sample metrics to avoid crashing
     if (len(sample_metrics) == 0):
-        #Dummy metrics
-        sample_metrics = [[[0], torch.Tensor([0]), torch.Tensor([0])]]
+        # Dummy metrics
+        sample_metrics = [[[0], [0], torch.Tensor([0]), torch.Tensor([0])]]
 
     # Concatenate sample statistics
-    true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
+    false_negatives, true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
     precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
-    return precision, recall, AP, f1, ap_class, np.array(imgLoss), []
+    return precision, recall, AP, f1, ap_class, np.array(imgLoss)
 
 
 if __name__ == "__main__":

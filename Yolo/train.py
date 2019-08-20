@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
             # Test the model on images with bleeding
             print("\n---- Positive test ----")
-            precision, recall, AP, f1, ap_class, loss, _ = performTest(
+            precision, recall, AP, f1, ap_class, loss = performTest(
                 model,
                 path=pos_test_path,
                 iou_thres=0.5,
@@ -198,38 +198,30 @@ if __name__ == "__main__":
                 nms_thres=0.5,
                 img_size=opt.img_size,
                 batch_size=8,
-                negative_test=False
+                epoch=epoch
             )
-            evaluation_metrics = [
+            pos_test_metrics = [
                 ("test_precision", precision.mean()),
                 ("test_recall", recall.mean()),
                 ("test_mAP", AP.mean()),
                 ("test_f1", f1.mean()),
                 ("test_loss", loss.mean())
             ]
-            logger.list_of_scalars_summary(evaluation_metrics, epoch)
+            logger.list_of_scalars_summary(pos_test_metrics, epoch)
 
             print(f"---- mAP {AP.mean()}")
-
+            '''
             # Test the model on images without bleeding
             print("\n---- Negative test ----")
-            _, _, _, _, _, _, falsePositives = performTest(
-                model,
-                path=neg_test_path,
-                iou_thres=0.5,
-                conf_thres=0.5,
-                nms_thres=0.5,
-                img_size=opt.img_size,
-                batch_size=8,
-                negative_test=True
-            )
+            
+            TODO
 
-            evaluation_metrics = [
+            neg_test_metrics = [
                 ("neg_test_#FP", falsePositives.sum()),
                 ("neg_test_mFP", falsePositives.mean())
             ]
-            logger.list_of_scalars_summary(evaluation_metrics, epoch)
-
+            logger.list_of_scalars_summary(neg_test_metrics, epoch)
+            '''
 
         if epoch % opt.checkpoint_interval == 0:
             torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)

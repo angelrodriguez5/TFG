@@ -2,7 +2,7 @@
 
 -conctarse al server
 
-	ssh angel@enterprise.dc.fi.es
+	ssh angel@enterprise.dc.fi.udc.es
 
 -pass = angel.1
 
