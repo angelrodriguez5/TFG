@@ -263,7 +263,7 @@ def printTestImageResults(paths, img_size, epoch, false_negatives, true_positive
         fig, ax = plt.subplots(1)
         ax.imshow(img)
 
-        if outputs is not None:
+        if outputs[sample_i] is not None:
             # Rescale boxes to original image
             output = rescale_boxes(outputs[sample_i], img_size, img.shape[:2])
             pred_boxes = output[:, :4]
