@@ -82,7 +82,7 @@ def isCorrectDetection(detected, target):
     distance = math.sqrt( ((dx-tx)**2)+((dy-ty)**2) )
 
     return distance <= threshold
-
+'''
 def performTest__OLD__(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0.4, batch_size=1, n_cpu=0, img_size=416):
     model.eval()  # Set in evaluation mode
 
@@ -236,7 +236,7 @@ def performTest__OLD__(model, classes, image_folder, epoch, conf_thres=0.8, nms_
 
     # Log confusion of test images
     print("Done testing!")
-
+'''
 def addBox(ax, box, color):
     x1, x2, y1, y2 = box
     w = x2 - x1
@@ -245,7 +245,7 @@ def addBox(ax, box, color):
     patch = patches.Rectangle((x1, y1), w, h, linewidth=1, edgecolor=color, facecolor="none")
     ax.add_patch(patch)
 
-def printImageTest(paths, epoch, false_negatives, true_positives, targets, outputs):
+def printTestImageResults(paths, epoch, false_negatives, true_positives, targets, outputs):
     """ Save a copy of the images with color coded rectangles denoting
         true positives, false positives and false negatives """
     # Color code for the rectangles
@@ -264,24 +264,26 @@ def printImageTest(paths, epoch, false_negatives, true_positives, targets, outpu
         fig, ax = plt.subplots(1)
         ax.imshow(img)
 
-        output = outputs[sample_i]
-        pred_boxes = output[:, :4]
+        if outputs is not None:
+            output = outputs[sample_i]
+            pred_boxes = output[:, :4]
 
-        annotations = targets[targets[:, 0] == sample_i][:, 1:]
-        target_boxes = annotations[:, 1:]
+            for i, tp in enumerate(true_positives[sample_i]):
+                if tp:
+                    # True positive
+                    addBox(ax, pred_boxes[i], C_TP)
+                else:
+                    # False positive
+                    addBox(ax, pred_boxes[i], C_FP)
 
-        for i, fn in enumerate(false_negatives[sample_i]):
-            if fn:
-                # False negative
-                addBox(ax, target_boxes[i], C_FN)
+        if targets is not None:
+            annotations = targets[targets[:, 0] == sample_i][:, 1:]
+            target_boxes = annotations[:, 1:]
 
-        for i, tp in enumerate(true_positives[sample_i]):
-            if tp:
-                # True positive
-                addBox(ax, pred_boxes[i], C_TP)
-            else:
-                # False positive
-                addBox(ax, pred_boxes[i], C_FP)
+            for i, fn in enumerate(false_negatives[sample_i]):
+                if fn:
+                    # False negative
+                    addBox(ax, target_boxes[i], C_FN)
 
         # Save generated image with detections
         plt.axis("off")
@@ -330,7 +332,7 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
         if len(batch_stats):
             false_negatives, true_positives, _, _ = list(zip(*batch_stats))
             # Save images with color coded detections and targets
-            printImageTest(img_paths, epoch, false_negatives, true_positives, targets, outputs)
+            printTestImageResults(img_paths, epoch, false_negatives, true_positives, targets, outputs)
 
     # In case of no outputs, load dummy sample metrics to avoid crashing
     if (len(sample_metrics) == 0):
