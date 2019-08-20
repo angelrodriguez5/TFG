@@ -309,13 +309,13 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
     labels = []
     sample_metrics = []  # List of tuples (FN, TP, confs, pred)
     for batch_i, (img_paths, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
-        # import targets to CUDA
-        cudaTargets = Variable(targets.to(device), requires_grad=False)
         # Extract labels
         labels += targets[:, 1].tolist()
         # Rescale target
         targets[:, 2:] = xywh2xyxy(targets[:, 2:])
         targets[:, 2:] *= img_size
+        # import targets to device
+        cudaTargets = Variable(targets.to(device), requires_grad=False)
 
         imgs = Variable(imgs.type(Tensor), requires_grad=False)
 
