@@ -291,7 +291,6 @@ def printImageTest(paths, epoch, false_negatives, true_positives, targets, outpu
         plt.savefig("output/test_epoch_%d/%s.png" % (epoch,filename), bbox_inches="tight", pad_inches=0.0)
         plt.close('all')
 
-
 def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size, epoch):
     model.eval()
 
@@ -327,9 +326,11 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
         batch_stats = get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
         sample_metrics += batch_stats
 
-        # Save images with color coded detections and targets
-        false_negatives, true_positives, _, _ = list(zip(*batch_stats))
-        printImageTest(img_paths, epoch, false_negatives, true_positives, targets, outputs)
+        # If detections were made
+        if len(batch_stats):
+            false_negatives, true_positives, _, _ = list(zip(*batch_stats))
+            # Save images with color coded detections and targets
+            printImageTest(img_paths, epoch, false_negatives, true_positives, targets, outputs)
 
     # In case of no outputs, load dummy sample metrics to avoid crashing
     if (len(sample_metrics) == 0):
