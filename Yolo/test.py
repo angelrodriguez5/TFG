@@ -245,7 +245,7 @@ def addBox(ax, box, color):
     patch = patches.Rectangle((x1, y1), w, h, linewidth=1, edgecolor=color, facecolor="none")
     ax.add_patch(patch)
 
-def printTestImageResults(paths, epoch, false_negatives, true_positives, targets, outputs):
+def printTestImageResults(paths, img_size, epoch, false_negatives, true_positives, targets, outputs):
     """ Save a copy of the images with color coded rectangles denoting
         true positives, false positives and false negatives """
     # Color code for the rectangles
@@ -259,13 +259,13 @@ def printTestImageResults(paths, epoch, false_negatives, true_positives, targets
     for sample_i in range(len(paths)):
         # Create plot
         img = np.array(Image.open(paths[sample_i]))
-        height, width, channels = img.shape
         plt.figure()
         fig, ax = plt.subplots(1)
         ax.imshow(img)
 
         if outputs is not None:
-            output = outputs[sample_i]
+            # Rescale boxes to original image
+            output = rescale_boxes(outputs[sample_i], img_size, img.shape[:2])
             pred_boxes = output[:, :4]
 
             for i, tp in enumerate(true_positives[sample_i]):
@@ -278,7 +278,7 @@ def printTestImageResults(paths, epoch, false_negatives, true_positives, targets
 
         if targets is not None:
             annotations = targets[targets[:, 0] == sample_i][:, 1:]
-            target_boxes = annotations[:, 1:]
+            target_boxes = rescale_boxes(annotations[:, 1:], img_size, img.shape[:2])
 
             for i, fn in enumerate(false_negatives[sample_i]):
                 if fn:
@@ -332,7 +332,7 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
         if len(batch_stats):
             false_negatives, true_positives, _, _ = list(zip(*batch_stats))
             # Save images with color coded detections and targets
-            printTestImageResults(img_paths, epoch, false_negatives, true_positives, targets, outputs)
+            printTestImageResults(img_paths, img_size, epoch, false_negatives, true_positives, targets, outputs)
 
     # In case of no outputs, load dummy sample metrics to avoid crashing
     if (len(sample_metrics) == 0):
