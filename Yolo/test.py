@@ -61,7 +61,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     # In case of no outputs, load dummy sample metrics to avoid crashing
     if (len(sample_metrics) == 0):
         #Dummy metrics
-        sample_metrics = [[[0], torch.Tensor([0]), torch.Tensor([0])]]
+        sample_metrics = [[[0],[0], torch.Tensor([0]), torch.Tensor([0])]]
 
     # Concatenate sample statistics
     false_negatives, true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
