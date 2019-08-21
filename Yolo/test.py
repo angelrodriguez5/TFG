@@ -268,6 +268,9 @@ def printTestImageResults(paths, img_size, epoch, false_negatives, true_positive
             output = rescale_boxes(outputs[sample_i], img_size, img.shape[:2])
             pred_boxes = output[:, :4]
 
+            print("Number of predicted objects:   %d" % len(pred_boxes))
+            print("Length of true posivite array: %d" % len(true_positives[sample_i]))
+
             for i, tp in enumerate(true_positives[sample_i]):
                 if tp:
                     # True positive
@@ -279,6 +282,9 @@ def printTestImageResults(paths, img_size, epoch, false_negatives, true_positive
         if targets is not None:
             annotations = targets[targets[:, 0] == sample_i][:, 1:]
             target_boxes = rescale_boxes(annotations[:, 1:], img_size, img.shape[:2])
+
+            print("Number of target objects:       %d" % len(target_boxes))
+            print("Length of false negative array: %d" % len(false_negatives[sample_i]))
 
             for i, fn in enumerate(false_negatives[sample_i]):
                 if fn:
