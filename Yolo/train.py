@@ -210,18 +210,25 @@ if __name__ == "__main__":
             logger.list_of_scalars_summary(pos_test_metrics, epoch)
 
             print(f"---- mAP {AP.mean()}")
-            '''
+            
             # Test the model on images without bleeding
             print("\n---- Negative test ----")
             
-            TODO
+            false_positives = performNegativeTest(
+                model,
+                path=neg_test_path,
+                conf_thres=0.5,
+                nms_thres=0.5,
+                img_size=opt.img_size,
+                batch_size=8
+            )
 
             neg_test_metrics = [
-                ("neg_test_#FP", falsePositives.sum()),
-                ("neg_test_mFP", falsePositives.mean())
+                ("neg_test_#FP", false_positives.sum()),
+                ("neg_test_mFP", false_positives.mean())
             ]
             logger.list_of_scalars_summary(neg_test_metrics, epoch)
-            '''
+            
 
         if epoch % opt.checkpoint_interval == 0:
             torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)

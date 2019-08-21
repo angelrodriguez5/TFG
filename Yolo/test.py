@@ -351,6 +351,35 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
 
     return precision, recall, AP, f1, ap_class, np.array(imgLoss)
 
+def performNegativeTest(model, path, conf_thres, nms_thres, img_size, batch_size):
+    model.eval()
+
+    # Get dataloader
+    dataset = ListDataset(path, img_size=img_size, augment=False, multiscale=False)
+    dataloader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, shuffle=False, num_workers=1, collate_fn=dataset.collate_fn
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+
+    false_positives = []
+    for batch_i, (img_paths, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
+        # import targets to CUDA
+        cudaTargets = Variable(targets.to(device), requires_grad=False)
+        imgs = Variable(imgs.type(Tensor), requires_grad=False)
+
+        # Test model
+        with torch.no_grad():
+            loss, outputs = model(imgs, cudaTargets)
+            outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
+
+        # All detections are false positives
+        batch_fp = [0 if x is None else len(x) for x in outputs]
+        false_positives.extend(batch_fp)
+
+    return np.array(false_positives)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
