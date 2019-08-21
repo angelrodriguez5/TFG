@@ -69,174 +69,6 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
     return precision, recall, AP, f1, ap_class, np.array(imgLoss)
 
-# Mark -> Mark -> Bool
-def isCorrectDetection(detected, target):
-    # TODO iou instead of distance
-    threshold = 25
-    # Distance between centers 
-    dx, dy = detected.getCenter()
-    dw, dh = detected.get_width(), detected.get_height()
-    tx, ty = target.getCenter()
-    tw, th = target.get_width(), target.get_height()
-
-    distance = math.sqrt( ((dx-tx)**2)+((dy-ty)**2) )
-
-    return distance <= threshold
-'''
-def performTest__OLD__(model, classes, image_folder, epoch, conf_thres=0.8, nms_thres=0.4, batch_size=1, n_cpu=0, img_size=416):
-    model.eval()  # Set in evaluation mode
-
-    os.makedirs("output/test_epoch_%d"%(epoch), exist_ok=True)
-
-    dataloader = DataLoader(
-        ImageFolder(image_folder, img_size=img_size),
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=n_cpu,
-    )
-
-    Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-
-    imgs = []  # Stores image paths
-    img_detections = []  # Stores detections for each image index
-
-    print("\nPerforming object detection:")
-    prev_time = time.time()
-    for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
-        # Configure input
-        input_imgs = Variable(input_imgs.type(Tensor))
-
-        # Get detections
-        with torch.no_grad():
-            detections = model(input_imgs)
-            detections = non_max_suppression(detections, conf_thres, nms_thres)
-
-        # Log progress
-        current_time = time.time()
-        inference_time = datetime.timedelta(seconds=current_time - prev_time)
-        prev_time = current_time
-        print("\t+ Batch %d, Inference Time: %s" % (batch_i, inference_time))
-
-        # Save image and detections
-        imgs.extend(img_paths)
-        img_detections.extend(detections)
-
-    # Dictionary to store confusion matrix of test images
-    confusionDict = {}
-
-    print("\nSaving images:")
-    # Iterate through images and save plot of detections
-    for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
-
-        print("(%d) Image: '%s'" % (img_i, path))
-        
-        # Create plot
-        img = np.array(Image.open(path))
-        height, width, channels = img.shape
-        plt.figure()
-        fig, ax = plt.subplots(1)
-        ax.imshow(img)
-
-        # Load test set marks
-        targetMarks = []
-        fileName = path.replace("_img", "_tag").replace(".png", ".txt")
-        if (os.path.isfile(fileName)):
-            f = open(fileName, 'r')
-            for line in f:
-                # Cast array of string to floats
-                array = [float(x) for x in line.split()]
-                # Cast class number to int
-                array[0] = int(array[0])
-                # Populate target list with marks in the file
-                mark = Mark.buildFromNorm(array, (width, height))
-                targetMarks.append(mark)
-
-        # Transform detections to marks
-        detectedMarks = []
-        if detections is not None:
-            # Rescale boxes to original image
-            detections = rescale_boxes(detections, img_size, img.shape[:2])
-
-            for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-
-                print("\t+ Label: %s, Conf: %.5f" % (classes[int(cls_pred)], cls_conf.item()))
-                
-                classNum = int(cls_pred)
-                cx = math.ceil((x1 + x2) / 2)
-                cy = math.ceil((y1 + y2) / 2)
-                w = x2 - x1
-                h = y2 - y1
-                # Populate detection list with marks
-                mark = Mark(classNum,(cx,cy), (w,h))
-                detectedMarks.append(mark)
-
-        # Filter marks and set colors acordingly for display
-        C_TP = 'g'
-        C_FP = 'r'
-        C_FN = 'b'
-        displayMarks = []
-        # confusion count variables
-        TP = 0
-        FP = 0
-        FN = 0
-        P = len(targetMarks)
-
-        # For each detection check if it was a target
-        for detected in detectedMarks:
-            tp = False
-            for target in targetMarks:
-                if (isCorrectDetection(detected, target)):
-                    # True positive
-                    tp = True
-                    TP += 1
-                    detected.set_color(C_TP)
-                    # Delete target to avoid counting duplicate detections as true positives
-                    targetMarks.remove(target)
-                    break
-
-            # Something was detected but is not one of the targets
-            if (not tp):
-                # False positive
-                FP += 1
-                detected.set_color(C_FP)
-
-            # Add detection with updated color to list
-            displayMarks.append(detected)
-
-        # The targets that weren't found are false negatives
-        for target in targetMarks:
-            target.set_color(C_FN)
-        FN = len(targetMarks)
-        displayMarks += targetMarks
-
-        # Confusion matrix
-        recall = TP / P
-        miss_rate = FN / P
-        precission =  0 if (TP + FP) == 0 else TP / (TP + FP)
-        # Print confusion matrix
-        print('Confusion matrix for image: %s' % (path))
-        table = [["recall", "miss rate", "Precission"], [recall, miss_rate, precission]]
-        print(AsciiTable(table).table)
-        print('\n')
-        # Add confusion matrix to dictionary
-        myConfusion = {"recall":recall, "miss_rate":miss_rate, "precission":precission}
-        confusionDict[path] = myConfusion
-
-        # Add marks to plot
-        for mark in displayMarks:
-            ax.add_patch(mark)
-
-        # Save generated image with detections
-        plt.axis("off")
-        plt.gca().xaxis.set_major_locator(NullLocator())
-        plt.gca().yaxis.set_major_locator(NullLocator())
-        filename = path.split("/")[-1].split(".")[0]
-        plt.savefig("output/test_epoch_%d/%s.png" % (epoch,filename), bbox_inches="tight", pad_inches=0.0)
-        plt.close('all')
-
-    # Log confusion of test images
-    print("Done testing!")
-'''
 def addBox(ax, box, color):
     x1, y1, x2, y2 = box
     w = x2 - x1
@@ -364,14 +196,13 @@ def performNegativeTest(model, path, conf_thres, nms_thres, img_size, batch_size
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
     false_positives = []
-    for batch_i, (img_paths, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
-        # import targets to CUDA
-        cudaTargets = Variable(targets.to(device), requires_grad=False)
+    for batch_i, (img_paths, imgs, _) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
+
         imgs = Variable(imgs.type(Tensor), requires_grad=False)
 
         # Test model
         with torch.no_grad():
-            loss, outputs = model(imgs, cudaTargets)
+            loss, outputs = model(imgs)
             outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
         # All detections are false positives
