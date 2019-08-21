@@ -95,33 +95,39 @@ def printTestImageResults(paths, img_size, epoch, false_negatives, true_positive
         fig, ax = plt.subplots(1)
         ax.imshow(img)
 
+        tp_count = 0
+        fp_count = 0
+        fn_count = 0
         if outputs[sample_i] is not None:
             # Rescale boxes to original image
             output = rescale_boxes(outputs[sample_i], img_size, img.shape[:2])
             pred_boxes = output[:, :4]
 
-            print("Number of predicted objects:   %d" % len(pred_boxes))
-            print("Length of true posivite array: %d" % len(true_positives[sample_i]))
-
             for i, tp in enumerate(true_positives[sample_i]):
                 if tp:
                     # True positive
                     addBox(ax, pred_boxes[i], C_TP)
+                    tp_count += 1
                 else:
                     # False positive
                     addBox(ax, pred_boxes[i], C_FP)
+                    fp_count += 1
 
         if targets is not None:
             annotations = targets[targets[:, 0] == sample_i][:, 1:]
             target_boxes = rescale_boxes(annotations[:, 1:], img_size, img.shape[:2])
 
-            print("Number of target objects:       %d" % len(target_boxes))
-            print("Length of false negative array: %d" % len(false_negatives[sample_i]))
-
             for i, fn in enumerate(false_negatives[sample_i]):
                 if fn:
                     # False negative
                     addBox(ax, target_boxes[i], C_FN)
+                    fn_count += 1
+
+        print("Img %d: %s" % (sample_i, paths[sample_i]))
+        print("    #TP: %d" % tp_count)
+        print("    #FP: %d" % fp_count)
+        print("    #FN: %d" % fn_count)
+        print(" --------- ")
 
         # Save generated image with detections
         plt.axis("off")
