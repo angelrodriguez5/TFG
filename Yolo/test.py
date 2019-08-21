@@ -202,7 +202,7 @@ def performNegativeTest(model, path, conf_thres, nms_thres, img_size, batch_size
 
         # Test model
         with torch.no_grad():
-            loss, outputs = model(imgs)
+            outputs = model(imgs)
             outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
         # All detections are false positives
