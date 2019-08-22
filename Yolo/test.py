@@ -103,24 +103,24 @@ def printTestImageResults(paths, img_size, epoch, false_negatives, true_positive
             output = rescale_boxes(outputs[sample_i], img_size, img.shape[:2])
             pred_boxes = output[:, :4]
 
-            for i, tp in enumerate(true_positives[sample_i]):
-                if tp:
+            for i, box in enumerate(pred_boxes):
+                if true_positives[i]:
                     # True positive
-                    addBox(ax, pred_boxes[i], C_TP)
+                    addBox(ax, box, C_TP)
                     tp_count += 1
                 else:
                     # False positive
-                    addBox(ax, pred_boxes[i], C_FP)
+                    addBox(ax, box, C_FP)
                     fp_count += 1
 
         if targets is not None:
             annotations = targets[targets[:, 0] == sample_i][:, 1:]
             target_boxes = rescale_boxes(annotations[:, 1:], img_size, img.shape[:2])
 
-            for i, fn in enumerate(false_negatives[sample_i]):
-                if fn:
+            for i, box in enumerate(target_boxes):
+                if false_negatives[i]:
                     # False negative
-                    addBox(ax, target_boxes[i], C_FN)
+                    addBox(ax, box, C_FN)
                     fn_count += 1
 
         print("Img %d: %s" % (sample_i, paths[sample_i]))
