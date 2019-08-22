@@ -104,7 +104,7 @@ def printTestImageResults(paths, img_size, epoch, false_negatives, true_positive
             pred_boxes = output[:, :4]
 
             for i, box in enumerate(pred_boxes):
-                if true_positives[i]:
+                if true_positives[sample_i][i]:
                     # True positive
                     addBox(ax, box, C_TP)
                     tp_count += 1
@@ -118,7 +118,7 @@ def printTestImageResults(paths, img_size, epoch, false_negatives, true_positive
             target_boxes = rescale_boxes(annotations[:, 1:], img_size, img.shape[:2])
 
             for i, box in enumerate(target_boxes):
-                if false_negatives[i]:
+                if false_negatives[sample_i][i]:
                     # False negative
                     addBox(ax, box, C_FN)
                     fn_count += 1
