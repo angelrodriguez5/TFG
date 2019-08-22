@@ -1,0 +1,10 @@
+data/custom/images/Negative/DSC_1094-frame0-R.png
+data/custom/images/Negative/DSC_1094-frame960-R.png
+data/custom/images/Negative/DSC_1099-frame480-R.png
+data/custom/images/Negative/DSC_1099-frame8880-R.png
+data/custom/images/Negative/DSC_1103-frame240.png
+data/custom/images/Negative/DSC_1103-frame6240.png
+data/custom/images/Negative/DSC_1106-frame240.png
+data/custom/images/Negative/DSC_1106-frame6240.png
+data/custom/images/Negative/DSC_1108-frame240.png
+data/custom/images/Negative/DSC_1108-frame6240.png

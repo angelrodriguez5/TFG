@@ -9,6 +9,17 @@ data/custom/images/DSC_1089/DSC_1089-frame2160.png
 data/custom/images/DSC_1089/DSC_1089-frame2400.png
 data/custom/images/DSC_1089/DSC_1089-frame2640.png
 
+data/custom/images/DSC_1089_4x3/DSC_1089-frame480-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame720-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame960-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame1200-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame1440-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame1680-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame1920-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame2160-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame2400-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame2640-L.png
+
 data/custom/images/DSC_1098/DSC_1098-frame17280.png
 data/custom/images/DSC_1098/DSC_1098-frame17520.png
 data/custom/images/DSC_1098/DSC_1098-frame17760.png
@@ -19,6 +30,17 @@ data/custom/images/DSC_1098/DSC_1098-frame18720.png
 data/custom/images/DSC_1098/DSC_1098-frame18960.png
 data/custom/images/DSC_1098/DSC_1098-frame19200.png
 data/custom/images/DSC_1098/DSC_1098-frame19440.png
+
+data/custom/images/DSC_1098_4x3/DSC_1098-frame17280-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame17520-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame17760-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame18000-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame18240-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame18480-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame18720-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame18960-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame19200-R.png
+data/custom/images/DSC_1098_4x3/DSC_1098-frame19440-R.png
 
 data/custom/images/DSC_1104/DSC_1104-frame240.png
 data/custom/images/DSC_1104/DSC_1104-frame480.png

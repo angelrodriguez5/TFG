@@ -1,0 +1,10 @@
+data/custom/images/DSC_1089_4x3/DSC_1089-frame480-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame720-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame960-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame1200-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame1440-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame1680-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame1920-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame2160-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame2400-L.png
+data/custom/images/DSC_1089_4x3/DSC_1089-frame2640-L.png
