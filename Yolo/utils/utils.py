@@ -149,7 +149,7 @@ def get_batch_statistics(outputs, targets, iou_threshold):
         false_negatives = []
         true_positives = []
         pred_scores = []
-        pred_lables = []
+        pred_labels = []
         # If outputs were found, mark true positives and false negatives
         if outputs[sample_i] is not None:
             output = outputs[sample_i]
