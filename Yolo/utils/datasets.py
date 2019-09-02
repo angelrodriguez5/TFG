@@ -2,6 +2,7 @@ import glob
 import random
 import os
 import sys
+import cv2
 import numpy as np
 from PIL import Image
 import torch
@@ -152,3 +153,38 @@ class ListDataset(Dataset):
 
     def __len__(self):
         return len(self.img_files)
+
+
+class VideoDataset(Dataset):
+    def __init__(self, video_path, img_size=416, frame_skip=0):
+        # Open video capture
+        self.capture = cv2.VideoCapture(video_path)
+        # get total number of frames
+        self.total_frames = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        # Number of frames to be skipped between returned images
+        self.frame_skip = frame_skip
+        self.img_size = img_size
+
+    def __getitem__(self, index):
+        # Get frame number from index
+        if self.frame_skip:
+            frame_num = (index * self.frame_skip) % self.total_frames
+        else:
+            frame_num = index % self.total_frames
+        # jump to selected frame
+        self.capture.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+        _, img = self.capture.read()
+        # Extract image as PyTorch tensor
+        img = transforms.ToTensor()(img)
+        # Pad to square resolution
+        img, _ = pad_to_square(img, 0)
+        # Resize
+        img = resize(img, self.img_size)
+
+        return frame_num, img
+
+    def __len__(self):
+        return (int(self.total_frames / self.frame_skip) if self.frame_skip else self.total_frames)
+
+    def __del__(self):
+        self.capture.release()
