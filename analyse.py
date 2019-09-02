@@ -37,7 +37,7 @@ class Options(object):
     # How many frames to be processed at the same time
     batch_size = 1
     # Number of frames to be skipped between samples
-    frame_skip = 2500
+    frame_skip = 60
     n_cpu = 0
     img_size = 416
 
@@ -74,8 +74,6 @@ if __name__ == "__main__":
     num_of_detections = []
     total_area = []
 
-    print("\nPerforming object detection:")
-    prev_time = time.time()
     for batch_i, (frame_nums, input_imgs) in enumerate(tqdm.tqdm(dataloader, desc="Analysing video")):
         # Configure input
         input_imgs = Variable(input_imgs.type(Tensor))
@@ -92,21 +90,20 @@ if __name__ == "__main__":
             if detections is not None:
                 num_of_detections.append(len(detections))
                 # Calculate total area of bleeding
-                for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-                    print ("First detection in frame")
-                    print ("x1 : %s" % x1)
-                    print ("x2 : %s" % x2)
-                    print ("y1 : %s" % y1)
-                    print ("y2 : %s" % y2)
-                    print ("------------")
-                    break
+                area = np.zeros((opt.img_size, opt.img_size))
+                for *coords, conf, cls_conf, cls_pred in detections:
+                    # Mark as 1 the areas detected
+                    x1, y1, x2, y2 = [int(x) for x in coords]
+                    area [y1:y2+1, x1:x2+1] = 1
+                    # the sum of all the elements in the array is the bleeding area in px^2
+                    total_area.append(area.sum())
             else:
                 # If nothing was detected in a frame add zeros
                 num_of_detections.append(0)
                 total_area.append(0)
                 print("No detections in frame")
 
-    plt.plot(frames, num_of_detections, 'r')
+    plt.plot(frames, num_of_detections, 'b', frames, total_area, 'r')
     plt.savefig('/home/angel/Dropbox/DropboxTFG/test.png')
     
     # # Bounding-box colors
