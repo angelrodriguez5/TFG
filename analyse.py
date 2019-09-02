@@ -87,16 +87,19 @@ if __name__ == "__main__":
         frames.extend(frame_nums)
         # Extract data from frames
         for detections in output:
+
             if detections is not None:
                 num_of_detections.append(len(detections))
+                
                 # Calculate total area of bleeding
                 area = np.zeros((opt.img_size, opt.img_size))
                 for *coords, conf, cls_conf, cls_pred in detections:
                     # Mark as 1 the areas detected
                     x1, y1, x2, y2 = [int(x) for x in coords]
                     area [y1:y2+1, x1:x2+1] = 1
-                    # the sum of all the elements in the array is the bleeding area in px^2
-                    total_area.append(area.sum())
+
+                # the sum of all the elements in the array is the bleeding area in px^2
+                total_area.append(area.sum())
             else:
                 # If nothing was detected in a frame add zeros
                 num_of_detections.append(0)
