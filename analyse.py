@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
             if detections is not None:
                 num_of_detections.append(len(detections))
-                
+
                 # Calculate total area of bleeding
                 area = np.zeros((opt.img_size, opt.img_size))
                 for *coords, conf, cls_conf, cls_pred in detections:
@@ -106,7 +106,12 @@ if __name__ == "__main__":
                 total_area.append(0)
                 print("No detections in frame")
 
-    plt.plot(frames, num_of_detections, 'b', frames, total_area, 'r')
+    fig, (ax1,ax2) = plt.subplots(1, 2)
+    ax1.set_title("Area of bleeding")
+    ax1.plot(frames, total_area)
+    ax2.set_title("Total number of detections")
+    ax2.plot(frames, num_of_detections)
+
     plt.savefig('/home/angel/Dropbox/DropboxTFG/test.png')
     
     # # Bounding-box colors
