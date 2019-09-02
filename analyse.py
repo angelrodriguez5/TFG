@@ -1,6 +1,9 @@
 from __future__ import division
 
 import os
+
+print (os.getcwd())
+
 import sys
 import time
 import datetime
