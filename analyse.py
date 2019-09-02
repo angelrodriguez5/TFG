@@ -1,9 +1,6 @@
 from __future__ import division
 
 import os
-
-print (os.getcwd())
-
 import sys
 import time
 import datetime
@@ -69,7 +66,7 @@ if __name__ == "__main__":
         num_workers=opt.n_cpu,
     )
 
-    classes = load_classes(opt.class_path)  # Extracts class labels from file
+    classes = load_classes(opt.classes)  # Extracts class labels from file
 
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
