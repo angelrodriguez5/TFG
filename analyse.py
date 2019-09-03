@@ -37,17 +37,16 @@ class Options(object):
     # How many frames to be processed at the same time
     batch_size = 1
     # Number of frames to be skipped between samples
-    frame_skip = 60
+    frame_skip = 0
     n_cpu = 0
     img_size = 416
 
     
 if __name__ == "__main__":
     # TEMPORARY STATIC VIDEO PATH
-    video_path = "Analyser/test/DSC_1104.MOV"
+    video_path = "Analyser/test/DSC_1106.MOV"
     # -----
     opt = Options()
-    print(opt)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
