@@ -43,9 +43,11 @@ class Options(object):
 
     
 if __name__ == "__main__":
-    # TEMPORARY STATIC VIDEO PATH
-    video_path = "Analyser/test/DSC_1106.MOV"
-    # -----
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--video", type=str, default="Analyser/test/DSC_1106.MOV", help="path to the video")
+    kwargs = parser.parse_args()
+    video_path = kwargs.video
+
     opt = Options()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
