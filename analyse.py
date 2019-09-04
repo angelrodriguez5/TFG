@@ -105,7 +105,6 @@ if __name__ == "__main__":
                 # If nothing was detected in a frame add zeros
                 num_of_detections.append(0)
                 total_area.append(0)
-                print("No detections in frame")
 
     fig, (ax1,ax2) = plt.subplots(1, 2)
     ax1.set_title("Area of bleeding")
