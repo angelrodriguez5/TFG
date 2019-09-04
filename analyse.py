@@ -44,9 +44,10 @@ class Options(object):
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--video", type=str, default="Analyser/test/DSC_1106.MOV", help="path to the video")
+    parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
     kwargs = parser.parse_args()
     video_path = kwargs.video
+    print("Video: " + video_path)
 
     opt = Options()
 
