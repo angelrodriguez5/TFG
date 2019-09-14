@@ -82,20 +82,20 @@ if __name__ == "__main__":
 
         # Get detections
         with torch.no_grad():
-            output = model(input_imgs)
-            output = non_max_suppression(output, opt.conf_thres, opt.nms_thres)
+            outputs = model(input_imgs)
+            outputs = non_max_suppression(outputs, opt.conf_thres, opt.nms_thres)
 
         # Save frame numbers for graphs
         frames.extend(frame_nums)
         # Extract data from frames
-        for detections in output:
+        for frame_detections in outputs:
 
-            if detections is not None:
-                num_of_detections.append(len(detections))
+            if frame_detections is not None:
+                num_of_detections.append(len(frame_detections))
 
                 # Calculate total area of bleeding
                 area = np.zeros((opt.img_size, opt.img_size))
-                for *coords, conf, cls_conf, cls_pred in detections:
+                for *coords, conf, cls_conf, cls_pred in frame_detections:
                     # Mark as 1 the areas detected
                     x1, y1, x2, y2 = [int(x) for x in coords]
                     area [y1:y2+1, x1:x2+1] = 1
