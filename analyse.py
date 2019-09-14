@@ -35,7 +35,7 @@ class Options(object):
     nms_thres = 0.4
 
     # How many frames to be processed at the same time
-    batch_size = 4
+    batch_size = 1
     # Number of frames to be skipped between samples
     frame_skip = 20
     n_cpu = 0
