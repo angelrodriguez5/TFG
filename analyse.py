@@ -37,7 +37,7 @@ class Options(object):
     # How many frames to be processed at the same time
     batch_size = 1
     # Number of frames to be skipped between samples
-    frame_skip = 20
+    frame_skip = 200
     n_cpu = 0
     img_size = 416
 
@@ -115,6 +115,11 @@ if __name__ == "__main__":
 
     plt.savefig('/home/angel/Dropbox/DropboxTFG/test.png')
     
+    print("Area:")
+    print(total_area)
+    print("")
+    print("# detections")
+    print(num_of_detections)
     # # Bounding-box colors
     # cmap = plt.get_cmap("tab20b")
     # colors = [cmap(i) for i in np.linspace(0, 1, 20)]
