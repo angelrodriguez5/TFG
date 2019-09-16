@@ -191,7 +191,7 @@ class VideoDataset(Dataset):
         return frame_num, img
 
     def __len__(self):
-        return (int(self.total_frames / self.frame_skip) if self.frame_skip else self.total_frames)
+        return (int(self.total_frames / self.frame_skip) if self.frame_skip else self.total_frames) - 1
 
     def __del__(self):
         self.capture.release()
