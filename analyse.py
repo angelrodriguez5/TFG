@@ -35,17 +35,17 @@ class Options(object):
     nms_thres = 0.4
 
     # How many frames to be processed at the same time
-    batch_size = 1
+    batch_size = 4
     # Number of frames to be skipped between samples
-    frame_skip = 200
+    frame_skip = 0
     n_cpu = 0
     img_size = 416
 
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--video", type=str, default="Analyser/test/neg_DSC_1106.MOV", help="path to the video")
-    parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
+    parser.add_argument("--video", type=str, default="Analyser/test/neg_DSC_1106.MOV", help="path to the video")
+    # parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
     kwargs = parser.parse_args()
     video_path = kwargs.video
     print("Video: " + video_path)
