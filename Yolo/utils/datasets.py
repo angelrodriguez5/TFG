@@ -174,6 +174,7 @@ class VideoDataset(Dataset):
         # jump to selected frame
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
         _, img = self.capture.read()
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(img)
         # Pad to square resolution
