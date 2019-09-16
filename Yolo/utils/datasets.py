@@ -173,8 +173,14 @@ class VideoDataset(Dataset):
             frame_num = index % self.total_frames
         # jump to selected frame
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
-        _, img = self.capture.read()
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        state, img = self.capture.read()
+        if state:
+            # Correct reading
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        else:
+            # Frame was not read, return a black frame
+            img = np.zeros(self.img_size, self.img_size, 3)
+
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(img)
         # Pad to square resolution
