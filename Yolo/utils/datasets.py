@@ -179,7 +179,8 @@ class VideoDataset(Dataset):
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         else:
             # Frame was not read, return a black frame
-            img = np.zeros((self.img_size, self.img_size, 3))
+            # img = np.zeros((self.img_size, self.img_size, 3), dtype=float)
+            return frame_num, None
 
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(img)
