@@ -179,7 +179,7 @@ class VideoDataset(Dataset):
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         else:
             # Frame was not read, return a black frame
-            img = np.zeros(self.img_size, self.img_size, 3)
+            img = np.zeros((self.img_size, self.img_size, 3))
 
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(img)
@@ -191,7 +191,7 @@ class VideoDataset(Dataset):
         return frame_num, img
 
     def __len__(self):
-        return (int(self.total_frames / self.frame_skip) if self.frame_skip else self.total_frames) - 1
+        return (int(self.total_frames / self.frame_skip) if self.frame_skip else self.total_frames)
 
     def __del__(self):
         self.capture.release()
