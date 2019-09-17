@@ -1,8 +1,8 @@
 from __future__ import division
 
-from models import *
-from utils.utils import *
-from utils.datasets import *
+from Yolo.models import *
+from Yolo.utils.utils import *
+from Yolo.utils.datasets import *
 
 import os
 import sys
