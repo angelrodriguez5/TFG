@@ -1,12 +1,12 @@
 from __future__ import division
 
-from models import *
-from utils.logger import *
-from utils.utils import *
-from utils.datasets import *
-from utils.parse_config import *
-from utils.exportResults import *
-from test import *
+from Yolo.models import *
+from Yolo.utils.logger import *
+from Yolo.utils.utils import *
+from Yolo.utils.datasets import *
+from Yolo.utils.parse_config import *
+from Yolo.utils.exportResults import *
+from Yolo.test import *
 
 from terminaltables import AsciiTable
 
