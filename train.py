@@ -27,7 +27,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--experiment_name", type=str, default="tttvx_np1000_lre-3", help="name of the folder to save logs, checkpoints...")
     parser.add_argument("--epochs", type=int, default=700, help="number of epochs")
-    parser.add_argument("--batch_size", type=int, default=4, help="size of each image batch")
+    parser.add_argument("--batch_size", type=int, default=2, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
     parser.add_argument("--model_def", type=str, default="config/customModelDef.cfg", help="path to model definition file")
     parser.add_argument("--data_config", type=str, default="config/custom.data", help="path to data config file")
