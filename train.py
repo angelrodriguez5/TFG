@@ -133,6 +133,10 @@ if __name__ == "__main__":
                 formats["grid_size"] = "%2d"
                 formats["cls_acc"] = "%.2f%%"
                 row_metrics = [formats[metric] % yolo.metrics.get(metric, 0) for yolo in model.yolo_layers]
+
+                # separate layer_3 metrics for loging epoch stats
+                epoch_metrics[i].append(model.yolo_layers[2].metrics.get(metric, 0))
+
                 metric_table += [[metric, *row_metrics]]
 
                 # Tensorboard logging
@@ -146,11 +150,6 @@ if __name__ == "__main__":
 
             log_str += AsciiTable(metric_table).table
             log_str += f"\nTotal loss {loss.item()}"
-
-            # Save batch metrics of yolo layer 3 for later tensorflow loging
-            layer3_metrics = row_metrics[2]
-            for i, metric in enumerate(layer3_metrics):
-                epoch_metrics[i].append(metric)
 
             # Determine approximate time left for epoch
             epoch_batches_left = len(dataloader) - (batch_i + 1)
