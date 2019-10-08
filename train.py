@@ -1,4 +1,5 @@
 from __future__ import division
+from statistics import mean
 
 from Yolo.models import *
 from Yolo.utils.logger import *
@@ -25,9 +26,9 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment_name", type=str, default="vxttt_p250_lre-3", help="name of the folder to save logs, checkpoints...")
-    parser.add_argument("--epochs", type=int, default=250, help="number of epochs")
-    parser.add_argument("--batch_size", type=int, default=2, help="size of each image batch")
+    parser.add_argument("--experiment_name", type=str, default="tttvx_p20_lre-3", help="name of the folder to save logs, checkpoints...")
+    parser.add_argument("--epochs", type=int, default=20, help="number of epochs")
+    parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
     parser.add_argument("--model_def", type=str, default="config/customModelDef.cfg", help="path to model definition file")
     parser.add_argument("--data_config", type=str, default="config/custom.data", help="path to data config file")
@@ -99,24 +100,19 @@ if __name__ == "__main__":
         "conf_noobj",
     ]
 
-    cumulativeLoss = 0
-
     for epoch in range(opt.epochs):
         model.train()
-        totalImgs = 0
-        cumulativeLoss = 0
+        epoch_metrics = [[] for i in range(len(metrics))]
 
         start_time = time.time()
         for batch_i, (_, imgs, targets) in enumerate(dataloader):
             batches_done = len(dataloader) * epoch + batch_i
 
-            totalImgs += len(imgs)
             imgs = Variable(imgs.to(device))
             targets = Variable(targets.to(device), requires_grad=False)
 
             loss, outputs = model(imgs, targets)
             loss.backward()
-            cumulativeLoss += loss
 
             if batches_done % opt.gradient_accumulations:
                 # Accumulates gradient before each step
@@ -140,16 +136,21 @@ if __name__ == "__main__":
                 metric_table += [[metric, *row_metrics]]
 
                 # Tensorboard logging
-                tensorboard_log = []
-                for j, yolo in enumerate(model.yolo_layers):
-                    for name, metric in yolo.metrics.items():
-                        if name != "grid_size":
-                            tensorboard_log += [(f"{name}_{j+1}", metric)]
-                tensorboard_log += [("loss", loss.item())]
-                logger.list_of_scalars_summary(tensorboard_log, batches_done)
+                # tensorboard_log = []
+                # for j, yolo in enumerate(model.yolo_layers):
+                #     for name, metric in yolo.metrics.items():
+                #         if name != "grid_size":
+                #             tensorboard_log += [(f"{name}_{j+1}", metric)]
+                # tensorboard_log += [("loss", loss.item())]
+                # logger.list_of_scalars_summary(tensorboard_log, batches_done)
 
             log_str += AsciiTable(metric_table).table
             log_str += f"\nTotal loss {loss.item()}"
+
+            # Save batch metrics of yolo layer 3 for later tensorflow loging
+            layer3_metrics = row_metrics[2]
+            for i, metric in enumerate(layer3_metrics):
+                epoch_metrics[i].append(metric)
 
             # Determine approximate time left for epoch
             epoch_batches_left = len(dataloader) - (batch_i + 1)
@@ -159,6 +160,10 @@ if __name__ == "__main__":
             print(log_str)
 
             model.seen += imgs.size(0)
+
+        # Log epoch summary
+        tensorboard_log = [(metric, mean(values)) for metric, values in zip(metrics, epoch_metrics)]
+        logger.list_of_scalars_summary(tensorboard_log, epoch)
 
         if epoch % opt.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
