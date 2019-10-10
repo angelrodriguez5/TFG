@@ -26,8 +26,8 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment_name", type=str, default="tttvx_p400_lre-6", help="name of the folder to save logs, checkpoints...")
-    parser.add_argument("--epochs", type=int, default=400, help="number of epochs")
+    parser.add_argument("--experiment_name", type=str, default="tttvx_p150_lre-3(1,1)", help="name of the folder to save logs, checkpoints...")
+    parser.add_argument("--epochs", type=int, default=150, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
     parser.add_argument("--model_def", type=str, default="config/customModelDef.cfg", help="path to model definition file")
@@ -86,10 +86,6 @@ if __name__ == "__main__":
     metrics = [
         "grid_size",
         "loss",
-        "x",
-        "y",
-        "w",
-        "h",
         "conf",
         "cls",
         "cls_acc",
@@ -139,7 +135,7 @@ if __name__ == "__main__":
 
                 metric_table += [[metric, *row_metrics]]
 
-                # Tensorboard logging
+                # Tensorboard logging for all layers
                 # tensorboard_log = []
                 # for j, yolo in enumerate(model.yolo_layers):
                 #     for name, metric in yolo.metrics.items():
@@ -233,7 +229,6 @@ if __name__ == "__main__":
             ]
             logger.list_of_scalars_summary(neg_test_metrics, epoch)
             
-
         if epoch % opt.checkpoint_interval == 0:
             torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d.pth" % epoch)
 
