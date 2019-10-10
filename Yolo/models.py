@@ -114,8 +114,8 @@ class YOLOLayer(nn.Module):
         self.ignore_thres = 0.5
         self.mse_loss = nn.MSELoss()
         self.bce_loss = nn.BCELoss()
-        self.obj_scale = 1
-        self.noobj_scale = 1
+        self.obj_scale = 100
+        self.noobj_scale = 100
         self.metrics = {}
         self.img_dim = img_dim
         self.grid_size = 0  # grid size
