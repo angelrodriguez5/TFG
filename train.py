@@ -170,7 +170,7 @@ if __name__ == "__main__":
                 conf_thres=0.5,
                 nms_thres=0.5,
                 img_size=opt.img_size,
-                batch_size=8,
+                batch_size=1,
             )
             evaluation_metrics = [
                 ("val_precision", precision.mean()),
@@ -185,7 +185,7 @@ if __name__ == "__main__":
             print(f"---- mAP {AP.mean()}")
             print()
 
-        if epoch % opt.test_interval == 0:
+        if epoch != 0 and epoch % opt.test_interval == 0:
             print("\n---- Testing Model ----")
 
             # Test the model on images with bleeding
@@ -197,7 +197,7 @@ if __name__ == "__main__":
                 conf_thres=0.5,
                 nms_thres=0.5,
                 img_size=opt.img_size,
-                batch_size=8,
+                batch_size=1,
                 epoch=epoch
             )
             pos_test_metrics = [
@@ -220,7 +220,7 @@ if __name__ == "__main__":
                 conf_thres=0.5,
                 nms_thres=0.5,
                 img_size=opt.img_size,
-                batch_size=8
+                batch_size=1
             )
 
             neg_test_metrics = [
