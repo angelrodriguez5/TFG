@@ -75,9 +75,9 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     fp = (np.prod(true_positives.shape)) - tp
     fn = false_negatives.sum()
 
-    recall = tp / (tp + fn)
-    precision = tp / (tp + fp)
-    f1 = 2 * precision * recall / (precision + recall)
+    recall = tp / (tp + fn + 1e-16)
+    precision = tp / (tp + fp + 1e-16)
+    f1 = 2 * precision * recall / (precision + recall + 1e-16)
 
     return precision, recall, AP, f1, ap_class, np.array(imgLoss)
 
@@ -207,9 +207,9 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
     fp = (np.prod(true_positives.shape)) - tp
     fn = false_negatives.sum()
 
-    recall = tp / (tp + fn)
-    precision = tp / (tp + fp)
-    f1 = 2 * precision * recall / (precision + recall)
+    recall = tp / (tp + fn + 1e-16)
+    precision = tp / (tp + fp + 1e-16)
+    f1 = 2 * precision * recall / (precision + recall + 1e-16)
 
     return precision, recall, AP, f1, ap_class, np.array(imgLoss)
 
