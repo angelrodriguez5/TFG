@@ -173,11 +173,11 @@ if __name__ == "__main__":
                 batch_size=1,
             )
             evaluation_metrics = [
-                ("val_precision", precision.mean()),
-                ("val_recall", recall.mean()),
+                ("val_precision", precision),
+                ("val_recall", recall),
                 ("val_mAP", AP.mean()),
-                ("val_f1", f1.mean()),
-                ("val_loss", loss.mean())
+                ("val_f1", f1),
+                ("val_loss", loss.sum())
             ]
             logger.list_of_scalars_summary(evaluation_metrics, epoch)
 
@@ -201,11 +201,11 @@ if __name__ == "__main__":
                 epoch=epoch
             )
             pos_test_metrics = [
-                ("test_precision", precision.mean()),
-                ("test_recall", recall.mean()),
+                ("test_precision", precision),
+                ("test_recall", recall),
                 ("test_mAP", AP.mean()),
-                ("test_f1", f1.mean()),
-                ("test_loss", loss.mean())
+                ("test_f1", f1),
+                ("test_loss", loss.sum())
             ]
             logger.list_of_scalars_summary(pos_test_metrics, epoch)
 

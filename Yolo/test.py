@@ -67,6 +67,18 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     false_negatives, true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
     precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
 
+    # Calculate precision, recall and f1 for the whole batch
+    # to avoid images with fewer targets weighting more
+    # true_positives is an array of arrays of flags corresponding to tp detections for each image
+    tp = true_positives.sum()
+    # total number of detections - true positives
+    fp = (np.prod(true_positives.shape)) - tp
+    fn = false_negatives.sum()
+
+    recall = tp / (tp + fn)
+    precision = tp / (tp + fp)
+    f1 = 2 * precision * recall / (precision + recall)
+
     return precision, recall, AP, f1, ap_class, np.array(imgLoss)
 
 def addBox(ax, box, color):
@@ -186,6 +198,18 @@ def performTest(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_s
     # Concatenate sample statistics
     false_negatives, true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
     precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
+
+    # Calculate precision, recall and f1 for the whole batch
+    # to avoid images with fewer targets weighting more
+    # true_positives is an array of arrays of flags corresponding to tp detections for each image
+    tp = true_positives.sum()
+    # total number of detections - true positives
+    fp = (np.prod(true_positives.shape)) - tp
+    fn = false_negatives.sum()
+
+    recall = tp / (tp + fn)
+    precision = tp / (tp + fp)
+    f1 = 2 * precision * recall / (precision + recall)
 
     return precision, recall, AP, f1, ap_class, np.array(imgLoss)
 
