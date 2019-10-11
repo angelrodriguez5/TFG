@@ -5,6 +5,8 @@ from math import ceil
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+import glob
+
 def plot_tensorflow_log(paths_dic, tags):
 	# Plot graphs in pairs
 	if len(tags) >= 10:
@@ -22,9 +24,11 @@ def plot_tensorflow_log(paths_dic, tags):
 	print("Loading...")
 	# Dictionary of log_name: event accumulator
 	event_accs = {}
-	for k, v in paths_dic.items():
-		event_accs[k] = EventAccumulator(v, tf_size_guidance)
-		event_accs[k].Reload()
+	for name, path in paths_dic.items():
+		# There should only be a file with ymir extension in the directory
+		logfile = glob.glob("%s\\*.ymir" % path)[0]
+		event_accs[name] = EventAccumulator(logfile, tf_size_guidance)
+		event_accs[name].Reload()
 	print("-----")
 
 	# Show all scalar tags in the log file
@@ -60,8 +64,9 @@ def plot_tensorflow_log(paths_dic, tags):
 if __name__ == '__main__':
 	# Dictionary of user-defined log names and their directories
 	# All log files will overlap in each graph and the legend will show the name given by this dictionary
-	log_files = {"lre-5": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\learningRate\\lr-5\\events.out.tfevents.1570546151.ymir",
-				 "lre-6": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\learningRate\\lr-6\\events.out.tfevents.1570615720.ymir"}
+	log_files = {"1-1": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\noobj_scale\\1-1",
+				 "50-50": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\noobj_scale\\50-50",
+				 "100-100": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\noobj_scale\\100-100"}
 
 	# List of tags to print for each log
 	tags = ["loss", "val_loss", "recall50", "val_recall", "precision", "val_precision", "neg_test_#FP", "neg_test_mFP"]
