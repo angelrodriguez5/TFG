@@ -62,13 +62,18 @@ def plot_tensorflow_log(paths_dic, tags):
 
 
 if __name__ == '__main__':
+	
+	exp_dir = "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\"
+	exp1 = exp_dir + "noobj_scale\\1-100"
+	exp2 = exp_dir + "noobj_scale\\100-1"
+	exp3 = exp_dir + "noobj_scale\\50-50"
 	# Dictionary of user-defined log names and their directories
 	# All log files will overlap in each graph and the legend will show the name given by this dictionary
-	log_files = {"1-1": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\noobj_scale\\1-1",
-				 "50-50": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\noobj_scale\\50-50",
-				 "100-100": "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\noobj_scale\\100-100"}
+	log_files = {"1-100": exp1,
+				 "100-1": exp2,
+				 "50-50": exp3}
 
 	# List of tags to print for each log
-	tags = ["loss", "val_loss", "recall50", "val_recall", "precision", "val_precision", "neg_test_#FP", "neg_test_mFP"]
+	tags = ["loss", "val_loss", "recall50", "val_recall", "precision", "val_precision"]
 
 	plot_tensorflow_log(log_files, tags)

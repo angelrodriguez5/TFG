@@ -37,45 +37,67 @@ class Options(object):
     # How many frames to be processed at the same time
     batch_size = 1
     # Number of frames to be skipped between samples
-    frame_skip = 200
+    frame_skip = 240
     n_cpu = 0
     img_size = 416
 
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    # parser.add_argument("--video", type=str, default="Analyser/test/neg_DSC_1106.MOV", help="path to the video")
-    parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
-    kwargs = parser.parse_args()
-    video_path = kwargs.video
-    print("Video: " + video_path)
+    # parser = argparse.ArgumentParser()
+    # # parser.add_argument("--video", type=str, default="Analyser/test/neg_DSC_1106.MOV", help="path to the video")
+    # parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
+    # kwargs = parser.parse_args()
+    # video_path = kwargs.video
+    # print("Video: " + video_path)
 
     opt = Options()
 
-    dataloader = DataLoader(
+    # Video dataset
+    video_path = "Analyser/test/pos_DSC_1107.MOV"
+    videoloader = DataLoader(
         VideoDataset(video_path, img_size=opt.img_size, frame_skip=opt.frame_skip),
-        batch_size=opt.batch_size,
+        batch_size=1,
         shuffle=False,
         num_workers=opt.n_cpu,
     )
 
-    frames = []
-    num_of_detections = []
-    total_area = []
+    # Folder dataset
+    folder_path = "Analyser/test/folder"
+    folderloader = DataLoader(
+        ImageFolder(folder_path, img_size=opt.img_size),
+        batch_size=1,
+        shuffle=False,
+        num_workers=opt.n_cpu,
+    )
 
-    for batch_i, (frame_nums, input_imgs) in enumerate(tqdm.tqdm(dataloader, desc="Analysing video")):
+    # List dataset
+    list_path = "Analyser/test/list.txt"
+    dataset = ListDataset(list_path, img_size=opt.img_size, augment=False, multiscale=False, unlabeled=True)
+    listloader = DataLoader(
+        dataset,
+        batch_size=1,
+        shuffle=False,
+        num_workers=opt.n_cpu,
+        collate_fn=dataset.collate_fn
+    )
 
-        for (frame, img) in list(zip(frame_nums, input_imgs)):
-            
-            # Transform image tensor to PIL  image
-            img = img.permute(1, 2, 0).numpy()
+    fig, ax = plt.subplots()
 
-            fig, ax = plt.subplots()
-            ax.imshow(img)
+    for batch_i, ((path, img2), (path, img3, targets))  in enumerate(zip(folderloader, listloader)):
 
-            # Save generated image with detections
-            plt.axis("off")
-            plt.gca().xaxis.set_major_locator(NullLocator())
-            plt.gca().yaxis.set_major_locator(NullLocator())
-            plt.savefig(f"{frame}.png", bbox_inches="tight", pad_inches=0.0)
-            plt.close()
+        # i1 = img1[0].permute(1, 2, 0).numpy()
+        # plt.subplot(311)
+        # plt.imshow(i1)
+
+        i2 = img2[0].permute(1, 2, 0).numpy()
+        plt.subplot(312)
+        plt.title("folder loader")
+        plt.imshow(i2)
+
+        i3 = img3[0].permute(1, 2, 0).numpy()
+        plt.subplot(313)
+        plt.title("list loader")
+        plt.imshow(i3)
+        
+        fig.canvas.draw()
+        plt.waitforbuttonpress()
