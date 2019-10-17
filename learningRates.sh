@@ -17,3 +17,7 @@ python3 train.py --experiment_name lr-5 --epochs 150 --model_def config/lr-5.cfg
 echo Experiment 5 - Learning rate 1e-6
 
 python3 train.py --experiment_name lr-6 --epochs 150 --model_def config/lr-6.cfg
+
+# Log finish date
+echo Finished at:
+date
