@@ -5,6 +5,7 @@ import sys
 import time
 import datetime
 import argparse
+import random
 
 from Yolo.models import *
 from Yolo.utils.utils import *
@@ -15,11 +16,13 @@ from PIL import Image
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets
+from torchvision.transforms import ToTensor
 from torch.autograd import Variable
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
+from matplotlib.colors import hsv_to_rgb
 
 class Options(object):
     '''
@@ -89,6 +92,27 @@ if __name__ == "__main__":
         # plt.subplot(311)
         # plt.imshow(i1)
 
+        # Tensor to RGB(0..1) image
+        i = img3[0].permute(1, 2, 0).numpy()
+        plt.subplot(211)
+        plt.title("rbg from tensor")
+        plt.imshow(i)
+        # RGB to HSV (0..360, 0..1, 0..1)
+        i = cv2.cvtColor(i, cv2.COLOR_RGB2HSV)
+        # Transformations in HSV space (2.2%, 10%, 10%)
+        h_off = random.uniform(-8,8)
+        s_off = random.uniform(-0.1,0.1)
+        v_off = random.uniform(-0.1,0.1)
+        i[:,:,0] += h_off
+        i[:,:,1] += s_off
+        i[:,:,2] += -0.1
+        # HSV to RGB (0..1)
+        rgb = cv2.cvtColor(i, cv2.COLOR_HSV2RGB)
+        plt.subplot(212)
+        plt.title("rgb from hsv")
+        plt.imshow(rgb)
+
+        '''
         i2 = img2[0].permute(1, 2, 0).numpy()
         plt.subplot(312)
         plt.title("folder loader")
@@ -98,6 +122,6 @@ if __name__ == "__main__":
         plt.subplot(313)
         plt.title("list loader")
         plt.imshow(i3)
-        
+        '''
         fig.canvas.draw()
         plt.waitforbuttonpress()
