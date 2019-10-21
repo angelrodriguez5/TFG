@@ -26,7 +26,7 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment_name", type=str, default="tttvx_p250_lr-3_augment_trainMetrics", help="name of the folder to save logs, checkpoints...")
+    parser.add_argument("--experiment_name", type=str, default="tttvx_p250_lr-3_noaugment_trainMetrics", help="name of the folder to save logs, checkpoints...")
     parser.add_argument("--epochs", type=int, default=250, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             model.load_darknet_weights(opt.pretrained_weights)
 
     # Get dataloader
-    dataset = ListDataset(train_path, augment=True, multiscale=opt.multiscale_training)
+    dataset = ListDataset(train_path, augment=False, multiscale=opt.multiscale_training)
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=opt.batch_size,
