@@ -26,7 +26,7 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment_name", type=str, default="noobj_1_1", help="name of the folder to save logs, checkpoints...")
+    parser.add_argument("--experiment_name", type=str, default="noobj_1_25", help="name of the folder to save logs, checkpoints...")
     parser.add_argument("--epochs", type=int, default=150, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
@@ -144,6 +144,7 @@ if __name__ == "__main__":
             model.seen += imgs.size(0)
 
         # Calculate training metrics over the whole set instead of batch by batch
+        print("--- Training epoch metrics ---")
         precision, recall, AP, f1, ap_class, loss = evaluate(
                 model,
                 path=train_path,
