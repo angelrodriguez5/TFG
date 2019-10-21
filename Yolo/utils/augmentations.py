@@ -14,7 +14,7 @@ def horisontal_flip(images, targets):
 
 def fixed_color_shift(img):
     # Tensor to RGB(0..1) image
-    i = img[0].permute(1, 2, 0).numpy()
+    i = img.permute(1, 2, 0).numpy()
     # RGB to HSV (0..360, 0..1, 0..1)
     i = cv2.cvtColor(i, cv2.COLOR_RGB2HSV)
     # Transformations in HSV space (2.2%, 10%, 10%)
