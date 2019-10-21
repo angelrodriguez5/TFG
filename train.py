@@ -98,7 +98,6 @@ if __name__ == "__main__":
 
     for epoch in range(opt.epochs):
         model.train()
-        epoch_metrics = [[] for i in range(len(metrics))]
 
         start_time = time.time()
         for batch_i, (_, imgs, targets) in enumerate(dataloader):
@@ -130,19 +129,7 @@ if __name__ == "__main__":
                 formats["cls_acc"] = "%.2f%%"
                 row_metrics = [formats[metric] % yolo.metrics.get(metric, 0) for yolo in model.yolo_layers]
 
-                # separate layer_3 metrics for loging epoch stats
-                epoch_metrics[i].append(model.yolo_layers[2].metrics.get(metric, 0))
-
                 metric_table += [[metric, *row_metrics]]
-
-                # Tensorboard logging for all layers
-                # tensorboard_log = []
-                # for j, yolo in enumerate(model.yolo_layers):
-                #     for name, metric in yolo.metrics.items():
-                #         if name != "grid_size":
-                #             tensorboard_log += [(f"{name}_{j+1}", metric)]
-                # tensorboard_log += [("loss", loss.item())]
-                # logger.list_of_scalars_summary(tensorboard_log, batches_done)
 
             log_str += AsciiTable(metric_table).table
             log_str += f"\nTotal loss {loss.item()}"
@@ -156,9 +143,24 @@ if __name__ == "__main__":
 
             model.seen += imgs.size(0)
 
-        # Log epoch summary
-        tensorboard_log = [(metric, mean(values)) for metric, values in zip(metrics, epoch_metrics)]
-        logger.list_of_scalars_summary(tensorboard_log, epoch)
+        # Calculate training metrics over the whole set instead of batch by batch
+        precision, recall, AP, f1, ap_class, loss = evaluate(
+                model,
+                path=train_path,
+                iou_thres=0.5,
+                conf_thres=0.5,
+                nms_thres=0.5,
+                img_size=opt.img_size,
+                batch_size=1,
+            )
+        trainning_metrics = [
+            ("tra_precision", precision),
+            ("tra_recall", recall),
+            ("tra_mAP", AP.mean()),
+            ("tra_f1", f1),
+            ("tra_loss", loss.sum())
+        ]
+        logger.list_of_scalars_summary(trainning_metrics, epoch)
 
         if epoch % opt.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
