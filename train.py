@@ -26,7 +26,7 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment_name", type=str, default="noaugment", help="name of the folder to save logs, checkpoints...")
+    parser.add_argument("--experiment_name", type=str, default="fliphsv", help="name of the folder to save logs, checkpoints...")
     parser.add_argument("--epochs", type=int, default=150, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("--evaluation_interval", type=int, default=1, help="interval evaluations on validation set")
     parser.add_argument("--test_interval", type=int, default=10, help="interval evaluations on test set")
     parser.add_argument("--compute_map", default=False, help="if True computes mAP every tenth batch")
-    parser.add_argument("--multiscale_training", default=False, help="allow for multi-scale training")
+    parser.add_argument("--multiscale_training", default=True, help="allow for multi-scale training")
     opt = parser.parse_args()
     print(opt)
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             model.load_darknet_weights(opt.pretrained_weights)
 
     # Get dataloader
-    dataset = ListDataset(train_path, augment=False, multiscale=opt.multiscale_training)
+    dataset = ListDataset(train_path, augment=True, multiscale=opt.multiscale_training)
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=opt.batch_size,
