@@ -133,13 +133,13 @@ class ListDataset(Dataset):
             # 25% change color
             # 25% flip + change color
             rnd = np.random.random()
-            if rnd < 0.25:
+            if rnd < 0.5:
                 img, targets = augment.horisontal_flip(img, targets)
-            elif rnd < 0.5:
-                img = augment.fixed_color_shift(img)
-            elif rnd < 0.75:
-                img, targets = augment.horisontal_flip(img, targets)
-                img = augment.fixed_color_shift(img)
+            # elif rnd < 0.5:
+            #     img = augment.fixed_color_shift(img)
+            # elif rnd < 0.75:
+            #     img, targets = augment.horisontal_flip(img, targets)
+            #     img = augment.fixed_color_shift(img)
 
         return img_path, img, targets
 

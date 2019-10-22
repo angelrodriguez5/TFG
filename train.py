@@ -26,7 +26,7 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment_name", type=str, default="fliphsv", help="name of the folder to save logs, checkpoints...")
+    parser.add_argument("--experiment_name", type=str, default="flip", help="name of the folder to save logs, checkpoints...")
     parser.add_argument("--epochs", type=int, default=150, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
