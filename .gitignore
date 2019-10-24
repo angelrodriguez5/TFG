@@ -2,3 +2,4 @@
 .vscode
 *.code-workspace
 Colour_study
+config/bestWeights/*

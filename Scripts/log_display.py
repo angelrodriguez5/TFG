@@ -50,6 +50,12 @@ def plot_tensorflow_log(paths_dic, tags):
 				w_times, steps, values = zip(*event)
 				# Plot evolution of values with respect to steps
 				plt.plot(steps, values, label=name)
+				# Print best f1 scores of checkpoint epochs
+				checkpoint_interval = 10 # Checkpoint every 10th epoch
+				if (tag == "val_f1"):
+					chkpts = values[::checkpoint_interval]
+					print("%s: 	Maximum f1 Score is: %f" % (name, max(chkpts)))
+					print(" 	Achieved in epoch %d" % (chkpts.index(max(chkpts)) * checkpoint_interval))
 
 			# Show legend on the first subplot, it is the same for the rest
 			if i == 0:
@@ -87,10 +93,6 @@ def plot_crossvalidation_logs(paths_dic, tags):
 		event_accs[name].Reload()
 	print("-----")
 
-	# Show all scalar tags in the log file
-	# print("Scalar tags available:")
-	# print(event_accs[k].Tags()['scalars'])
-
 	# Load data corresponding to chosen tags
 	for i, tag in enumerate(tags):
 		try:
@@ -121,21 +123,21 @@ def plot_crossvalidation_logs(paths_dic, tags):
 if __name__ == '__main__':
 	
 	exp_dir = "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\"
-	exp1 = exp_dir + "learningRate\\lr-2"
-	exp2 = exp_dir + "learningRate\\lr-3"
-	exp3 = exp_dir + "learningRate\\lr-4"
-	exp4 = exp_dir + "learningRate\\lr-5"
-	exp5 = exp_dir + "learningRate\\lr-6"
+	exp1 = exp_dir + "crossvalidation\\tttvx"
+	exp2 = exp_dir + "crossvalidation\\xtttv"
+	exp3 = exp_dir + "crossvalidation\\vxttt"
+	exp4 = exp_dir + "crossvalidation\\tvxtt"
+	exp5 = exp_dir + "crossvalidation\\ttvxt"
 	# Dictionary of user-defined log names and their directories
 	# All log files will overlap in each graph and the legend will show the name given by this dictionary
-	log_files = {"1e-2": exp1,
-				 "1e-3": exp2,
-				 "1e-4": exp3,
-				 "1e-5": exp4,
-				 "1e-6": exp5}
+	log_files = {"tttvx": exp1,
+				 "xtttv": exp2,
+				 "vxttt": exp3,
+				 "tvxtt": exp4,
+				 "ttvxt": exp5}
 
 	# List of tags to print for each log
-	tags = ["loss", "val_loss", "recall50", "val_recall", "precision", "val_precision", "val_f1", "neg_test_#FP"]
+	tags = ["tra_loss", "val_loss", "tra_recall", "val_recall", "tra_precision", "val_precision", "val_f1", "neg_test_#FP"]
 	plot_tensorflow_log(log_files, tags)
 
 	''' 
