@@ -33,7 +33,7 @@ if __name__ == "__main__":
                 "tttvx":("config/bestWeights/xtttv.pth", "data/crossvalidation/2-xtttv/positive_test.txt"),
                 "tttvx":("config/bestWeights/vxttt.pth", "data/crossvalidation/3-vxttt/positive_test.txt"),
                 "tttvx":("config/bestWeights/tvxtt.pth", "data/crossvalidation/4-tvxtt/positive_test.txt"),
-                "tttvx":("config/bestWeights/ttvxt.pth", "data/crossvalidation/5-ttvxt/positive_test.txt"),}
+                "tttvx":("config/bestWeights/ttvxt.pth", "data/crossvalidation/5-ttvxt/positive_test.txt")}
 
     # Initiate model
     model = Darknet("config/customModelDef.cfg").to(device)
@@ -42,6 +42,7 @@ if __name__ == "__main__":
     # Placeholder for the metrics of the different models
     data = []
     for name, (weights, test) in crossval.items():
+        print("Processing " + name)
         # Load weights
         model.load_state_dict(torch.load(weights))
         # Get dataloader
