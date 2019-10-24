@@ -74,6 +74,7 @@ if __name__ == "__main__":
     prcs, rcls, f1s = zip(*data)
     plt.errorbar(["precision","recall","f1 score"], 
                  [mean(prcs), mean(rcls), mean(f1s)],
-                 [stdev(prcs), stdev(rcls), stdev(f1s)])
+                 [stdev(prcs), stdev(rcls), stdev(f1s)],
+                 fmt='none', ecolor='b', marker='s', mfc='r')
     plt.show()
     plt.savefig("../Dropbox/DropboxTFG/crossvalid.png")
