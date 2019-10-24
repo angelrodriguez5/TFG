@@ -30,10 +30,10 @@ if __name__ == "__main__":
 
     # Data configuration name: (weights, testset)
     crossval = {"tttvx":("config/bestWeights/tttvx.pth", "data/crossvalidation/1-tttvx/positive_test.txt"),
-                "tttvx":("config/bestWeights/xtttv.pth", "data/crossvalidation/2-xtttv/positive_test.txt"),
-                "tttvx":("config/bestWeights/vxttt.pth", "data/crossvalidation/3-vxttt/positive_test.txt"),
-                "tttvx":("config/bestWeights/tvxtt.pth", "data/crossvalidation/4-tvxtt/positive_test.txt"),
-                "tttvx":("config/bestWeights/ttvxt.pth", "data/crossvalidation/5-ttvxt/positive_test.txt")}
+                "xtttv":("config/bestWeights/xtttv.pth", "data/crossvalidation/2-xtttv/positive_test.txt"),
+                "vxttt":("config/bestWeights/vxttt.pth", "data/crossvalidation/3-vxttt/positive_test.txt"),
+                "tvxtt":("config/bestWeights/tvxtt.pth", "data/crossvalidation/4-tvxtt/positive_test.txt"),
+                "ttvxt":("config/bestWeights/ttvxt.pth", "data/crossvalidation/5-ttvxt/positive_test.txt")}
 
     # Initiate model
     model = Darknet("config/customModelDef.cfg").to(device)
