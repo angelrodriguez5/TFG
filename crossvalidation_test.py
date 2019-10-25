@@ -17,6 +17,8 @@ import time
 import datetime
 import argparse
 
+from matplotlib import pyplot as plt
+
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets
@@ -71,10 +73,16 @@ if __name__ == "__main__":
         # Save metrics
         data.append([precision,recall,f1])
 
+    # Separate metrics
     prcs, rcls, f1s = zip(*data)
-    plt.errorbar(["precision","recall","f1 score"], 
-                 [mean(prcs), mean(rcls), mean(f1s)],
-                 [stdev(prcs), stdev(rcls), stdev(f1s)],
-                 fmt='none', ecolor='b', marker='s', mfc='r', mec='r')
+
+    # Calculate mean and standard deviation
+    x = ["precision","recall","f1 score"]
+    y = [mean(prcs), mean(rcls), mean(f1s)]
+    e = [stdev(prcs), stdev(rcls), stdev(f1s)]
+
+    # Plot mean as red squares and stved as blue lines
+    plt.errorbar(x, y, e, fmt='none', zorder=0)
+    plt.scatter(x,y, c='r', marker='s')
     plt.show()
     plt.savefig("../Dropbox/DropboxTFG/crossvalid.png")
