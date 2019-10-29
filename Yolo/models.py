@@ -207,8 +207,11 @@ class YOLOLayer(nn.Module):
             iou50 = (iou_scores > 0.5).float()
             iou75 = (iou_scores > 0.75).float()
             detected_mask = conf50 * class_mask * tconf
-            precision = torch.sum(iou50 * detected_mask) / (conf50.sum() + 1e-16)
-            recall50 = torch.sum(iou50 * detected_mask) / (obj_mask.sum() + 1e-16)
+            true_positives = torch.sum(iou50 * detected_mask)
+            total_detections = conf50.sum()
+            total_objects = obj_mask.sum()
+            precision = true_positives / (total_detections + 1e-16)
+            recall50 = true_positives / (total_objects + 1e-16)
             recall75 = torch.sum(iou75 * detected_mask) / (obj_mask.sum() + 1e-16)
 
             self.metrics = {
@@ -226,6 +229,9 @@ class YOLOLayer(nn.Module):
                 "conf_obj": to_cpu(conf_obj).item(),
                 "conf_noobj": to_cpu(conf_noobj).item(),
                 "grid_size": grid_size,
+                "true_positives": to_cpu(true_positives).item(),
+                "total_detections": to_cpu(total_detections).item(),
+                "total_objects": to_cpu(total_objects).item(),
             }
 
             return output, total_loss

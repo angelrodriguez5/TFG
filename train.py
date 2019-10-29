@@ -99,6 +99,11 @@ if __name__ == "__main__":
     for epoch in range(opt.epochs):
         model.train()
 
+        train_loss = np.array([])
+        true_positives = np.array([])
+        total_detections = np.array([])
+        total_objects = np.array([])
+
         start_time = time.time()
         for batch_i, (_, imgs, targets) in enumerate(dataloader):
             batches_done = len(dataloader) * epoch + batch_i
@@ -107,12 +112,17 @@ if __name__ == "__main__":
             targets = Variable(targets.to(device), requires_grad=False)
 
             loss, outputs = model(imgs, targets)
+            train_loss = np.append(train_loss, loss.item())
             loss.backward()
 
-            if (batches_done + 1) % opt.gradient_accumulations:
-                # Accumulates gradient before each step
-                optimizer.step()
-                optimizer.zero_grad()
+            optimizer.step()
+            optimizer.zero_grad()
+
+            # Get training metrics for calculating recall and precision over the whole training set
+            # It saves the metrics of all the layers (3 metrics per batch)
+            true_positives = np.append(true_positives, [yolo.metrics.get("true_positives", 0) for yolo in model.yolo_layers])
+            total_detections = np.append(total_detections, [yolo.metrics.get("total_detections", 0) for yolo in model.yolo_layers])
+            total_objects = np.append(total_objects, [yolo.metrics.get("total_objects", 0) for yolo in model.yolo_layers])
 
             # ----------------
             #   Log progress
@@ -145,21 +155,14 @@ if __name__ == "__main__":
 
         # Calculate training metrics over the whole set instead of batch by batch
         print("--- Training epoch metrics ---")
-        precision, recall, AP, f1, ap_class, loss = evaluate(
-                model,
-                path=train_path,
-                iou_thres=0.5,
-                conf_thres=0.5,
-                nms_thres=0.5,
-                img_size=opt.img_size,
-                batch_size=1,
-            )
+        precision = true_positives.sum() / total_detections.sum()
+        recall = true_positives.sum() / total_objects.sum()
+        f1 = 2 * precision * recall / (precision + recall + 1e-16)
         trainning_metrics = [
             ("tra_precision", precision),
             ("tra_recall", recall),
-            ("tra_mAP", AP.mean()),
             ("tra_f1", f1),
-            ("tra_loss", loss.sum())
+            ("tra_loss", train_loss.sum())
         ]
         logger.list_of_scalars_summary(trainning_metrics, epoch)
 
