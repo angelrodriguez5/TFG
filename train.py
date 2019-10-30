@@ -26,20 +26,19 @@ import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment_name", type=str, default="tttvx_p150", help="name of the folder to save logs, checkpoints...")
+    parser.add_argument("--experiment_name", type=str, default="default", help="name of the folder to save logs, checkpoints...")
     parser.add_argument("--epochs", type=int, default=150, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=1, help="size of each image batch")
-    parser.add_argument("--gradient_accumulations", type=int, default=1, help="number of gradient accums before step")
     parser.add_argument("--model_def", type=str, default="config/customModelDef.cfg", help="path to model definition file")
     parser.add_argument("--data_config", type=str, default="config/custom.data", help="path to data config file")
-    parser.add_argument("--pretrained_weights", type=str, default="Yolo/weights/darknet53.conv.74", help="if specified starts from checkpoint model") # default="weights/darknet53.conv.74"
+    parser.add_argument("--pretrained_weights", type=str, help="if specified starts from checkpoint model") # default="weights/darknet53.conv.74"
     parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--checkpoint_interval", type=int, default=10, help="interval between saving model weights")
     parser.add_argument("--evaluation_interval", type=int, default=1, help="interval evaluations on validation set")
     parser.add_argument("--test_interval", type=int, default=10, help="interval evaluations on test set")
     parser.add_argument("--compute_map", default=False, help="if True computes mAP every tenth batch")
-    parser.add_argument("--multiscale_training", default=True, help="allow for multi-scale training")
+    parser.add_argument("--augmentation", default=True, help="allow for multi-scale, flip and HSV transformations in training")
     opt = parser.parse_args()
     print(opt)
 
@@ -71,7 +70,7 @@ if __name__ == "__main__":
             model.load_darknet_weights(opt.pretrained_weights)
 
     # Get dataloader
-    dataset = ListDataset(train_path, augment=True, multiscale=opt.multiscale_training)
+    dataset = ListDataset(train_path, augment=opt.augmentation, multiscale=opt.augmentation)
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=opt.batch_size,
@@ -169,7 +168,7 @@ if __name__ == "__main__":
         if epoch % opt.evaluation_interval == 0:
             print("\n---- Evaluating Model ----")
             # Evaluate the model on the validation set
-            precision, recall, AP, f1, ap_class, loss = evaluate(
+            precision, recall, AP, f1, ap_class, val_loss = evaluate(
                 model,
                 path=valid_path,
                 iou_thres=0.5,
@@ -183,7 +182,7 @@ if __name__ == "__main__":
                 ("val_recall", recall),
                 ("val_mAP", AP.mean()),
                 ("val_f1", f1),
-                ("val_loss", loss.sum())
+                ("val_loss", val_loss.sum())
             ]
             logger.list_of_scalars_summary(evaluation_metrics, epoch)
 
@@ -196,7 +195,7 @@ if __name__ == "__main__":
 
             # Test the model on images with bleeding
             print("\n---- Positive test ----")
-            precision, recall, AP, f1, ap_class, loss = performTest(
+            precision, recall, AP, f1, ap_class, test_loss = performTest(
                 model,
                 path=pos_test_path,
                 iou_thres=0.5,
@@ -211,7 +210,7 @@ if __name__ == "__main__":
                 ("test_recall", recall),
                 ("test_mAP", AP.mean()),
                 ("test_f1", f1),
-                ("test_loss", loss.sum())
+                ("test_loss", test_loss.sum())
             ]
             logger.list_of_scalars_summary(pos_test_metrics, epoch)
 
