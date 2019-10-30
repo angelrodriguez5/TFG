@@ -199,17 +199,6 @@ class YOLOLayer(nn.Module):
             loss_cls = self.bce_loss(pred_cls[obj_mask], tcls[obj_mask])
             total_loss = loss_x + loss_y + loss_w + loss_h + loss_conf + loss_cls
 
-            if total_loss >= 1000:
-                print("loss_x: " + str(loss_x.item()))
-                print("loss_y: " + str(loss_y.item()))
-                print("loss_w: " + str(loss_w.item()))
-                print("loss_h: " + str(loss_h.item()))
-                print("loss_conf_obj: " + str(loss_conf_obj.item()))
-                print("loss_conf_noobj: " + str(loss_conf_noobj.item()))
-                print("loss_conf: " + str(loss_conf.item()))
-                print("loss_cls: " + str(loss_cls.item()))
-                exit()
-
             # Metrics
             cls_acc = 100 * class_mask[obj_mask].mean()
             conf_obj = pred_conf[obj_mask].mean()
