@@ -1,5 +1,5 @@
 NAME1="Pretrained"
-PARAMS1="--pretrained_weights weights/darknet53.conv.74"
+PARAMS1="--pretrained_weights Yolo/weights/darknet53.conv.74"
 NAME2="NotPretrained"
 PARAMS2=""
 
