@@ -65,14 +65,14 @@ def plot_tensorflow_log(paths_dic, tags):
 			# Requested invalid tag
 			print("Tag \"%s\" does not exist in log with name \"%s\"" % (tag, name))
 
-	plt.subplots_adjust(hspace=0.35)
+	plt.subplots_adjust(hspace=0.5)
 	plt.show()
 
 
 def plot_crossvalidation_logs(paths_dic, tags):
 	# Plot graphs in pairs
-	if len(tags) >= 5:
-		raise Exception('Max length of Tags is 4')
+	if len(tags) >= 10:
+		raise Exception('Max length of Tags is 9')
 	pltgrid = 100 * len(tags) + 10
 	
 	# Load all scalars
@@ -88,29 +88,40 @@ def plot_crossvalidation_logs(paths_dic, tags):
 	event_accs = {}
 	for name, path in paths_dic.items():
 		# There should only be a file with ymir extension in the directory
-		logfile = glob.glob("%s\\*.ymir" % path)[0]
-		event_accs[name] = EventAccumulator(logfile, tf_size_guidance)
-		event_accs[name].Reload()
+		logfiles = glob.glob("%s\\*.ymir" % path)
+		tmp = []
+		for f in logfiles:
+			event_acc = EventAccumulator(f, tf_size_guidance)
+			event_acc.Reload()
+			tmp.append(event_acc)
+		event_accs[name] = tmp
 	print("-----")
 
+	plt.figure(figsize=[7,9])
 	# Load data corresponding to chosen tags
 	for i, tag in enumerate(tags):
 		try:
-			data = []
-			# Extract data from event accumulators (should be the same length)
-			for name, event_acc in event_accs.items():
-				event = event_acc.Scalars(tag)
-				# Separate list of tuples (time, step, val) into three lists
-				w_times, steps, values = zip(*event)
-				data.append(values)
-
-			# Calculate mean and std deviation
-			m = [mean(x) for x in zip(*data)]
-			sd = [stdev(x) for x in zip(*data)]
-
+			# Set the current plot to its position in the grid
 			plt.subplot(pltgrid + i + 1)
 			plt.title(tag)
-			plt.errorbar(steps, m, sd, fmt='r', ecolor='b')
+			# Extract data from event accumulators (should be the same length)
+			for name, events in event_accs.items():
+				data = []
+				for acc in events:
+					event = acc.Scalars(tag)
+					# Separate list of tuples (time, step, val) into three lists
+					w_times, steps, values = zip(*event)
+					data.append(values)
+
+				# Calculate mean and std deviation
+				m = [mean(x) for x in zip(*data)]
+				sd = [stdev(x) for x in zip(*data)]
+
+				plt.plot(steps, m, label=name)
+
+			# Show legend on the first subplot, it is the same for the rest
+			if i == 0:
+				plt.legend(loc='lower right', frameon=True)
 
 		except Exception as e:
 			# Requested invalid tag
@@ -121,7 +132,7 @@ def plot_crossvalidation_logs(paths_dic, tags):
 	plt.show()
 
 if __name__ == '__main__':
-	
+	'''
 	exp_dir = "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\"
 	exp1 = exp_dir + "crossvalidation\\tttvx"
 	exp2 = exp_dir + "crossvalidation\\xtttv"
@@ -143,19 +154,12 @@ if __name__ == '__main__':
 	''' 
 	# Cross validation 
 	exp_dir = "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\"
-	exp1 = exp_dir + "crossvalidation2\\tttvx"
-	exp2 = exp_dir + "crossvalidation2\\xtttv"
-	exp3 = exp_dir + "crossvalidation2\\vxttt"
-	exp4 = exp_dir + "crossvalidation2\\tvxtt"
-	exp5 = exp_dir + "crossvalidation2\\ttvxt"
+	exp1 = exp_dir + "NotPretrained"
+	exp2 = exp_dir + "Pretrained"
 	# Dictionary of user-defined log names and their directories
 	# All log files will overlap in each graph and the legend will show the name given by this dictionary
-	log_files = {"tttvx": exp1,
-				 "xtttv": exp2,
-				 "vxttt": exp3,
-				 "tvxtt": exp4,
-				 "ttvxt": exp5}
+	log_files = {"Not pretrained": exp1,
+				 "Pretrained": exp2}
 
-	tags = ["val_recall", "val_precision", "val_f1"]
+	tags = ["val_recall", "val_precision", "val_f1", "neg_test_#FP"]
 	plot_crossvalidation_logs(log_files, tags)
-	'''
