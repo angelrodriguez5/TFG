@@ -40,7 +40,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     imgLoss = []
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
-    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Validating model")):
+    for batch_i, (paths , imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Validating model")):
         # import targets to CUDA
         cudaTargets = Variable(targets.to(device), requires_grad=False)
         # Extract labels
@@ -56,7 +56,16 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
             outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
         imgLoss += [loss.item()]
-        sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+        batch_stats = get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+        sample_metrics += batch_stats
+
+        # If loss is too big save image
+        if loss.item() >= 1000:
+            # If detections were made
+            if len(batch_stats):
+                false_negatives, true_positives, _, _ = list(zip(*batch_stats))
+                # Save images with color coded detections and targets
+                printTestImageResults(paths, img_size, 999, false_negatives, true_positives, targets, outputs)
 
     # In case of no outputs, load dummy sample metrics to avoid crashing
     if (len(sample_metrics) == 0):
