@@ -59,13 +59,17 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         batch_stats = get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
         sample_metrics += batch_stats
 
+        '''
         # If loss is too big save image
-        if loss.item() >= 1000:
+        if loss.item() >= 700:
             # If detections were made
             if len(batch_stats):
+                print ("Detected high validation loss")
                 false_negatives, true_positives, _, _ = list(zip(*batch_stats))
-                # Save images with color coded detections and targets
-                printTestImageResults(paths, img_size, 999, false_negatives, true_positives, targets, outputs)
+                # Save image with all detections as green squares and all ground truth as blue
+                # false_negatives < 2 converts the array to all True values
+                printTestImageResults(paths, img_size, 999, (false_negatives < 2), (true_positives < 2), targets, outputs)
+        '''
 
     # In case of no outputs, load dummy sample metrics to avoid crashing
     if (len(sample_metrics) == 0):
