@@ -1,7 +1,7 @@
-NAME1="Pretrained"
-PARAMS1="--pretrained_weights Yolo/weights/darknet53.conv.74"
-NAME2="NotPretrained"
-PARAMS2=""
+NAME1="Augmented"
+PARAMS1="--pretrained_weights Yolo/weights/darknet53.conv.74 --augmentation True"
+NAME2="NotAugmented"
+PARAMS2="--pretrained_weights Yolo/weights/darknet53.conv.74 --augmentation False"
 
 echo Experiment 1 - tttvx
 cp data/crossvalidation/1-tttvx/* data/custom/
