@@ -121,7 +121,7 @@ def plot_crossvalidation_logs(paths_dic, tags):
 
 			# Show legend on the first subplot, it is the same for the rest
 			if i == 0:
-				plt.legend(loc='lower right', frameon=True)
+				plt.legend(loc='best', frameon=True)
 
 		except Exception as e:
 			# Requested invalid tag
@@ -154,12 +154,13 @@ if __name__ == '__main__':
 	''' 
 	# Cross validation 
 	exp_dir = "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\"
-	exp1 = exp_dir + "NotPretrained"
-	exp2 = exp_dir + "Pretrained"
+	exp1 = exp_dir + "Pretrained"
+	exp2 = exp_dir + "Augmented"
 	# Dictionary of user-defined log names and their directories
 	# All log files will overlap in each graph and the legend will show the name given by this dictionary
-	log_files = {"Not pretrained": exp1,
-				 "Pretrained": exp2}
+	log_files = {"Pretrained": exp1,
+				 "Augmented": exp2}
 
 	tags = ["val_recall", "val_precision", "val_f1", "neg_test_#FP"]
+	tags = ["tra_loss", "tra_recall", "tra_precision", "tra_f1"]
 	plot_crossvalidation_logs(log_files, tags)
