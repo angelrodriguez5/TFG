@@ -41,10 +41,70 @@ class Options(object):
     n_cpu = 0
     img_size = 416
 
-    
+
+def print_expert_timings(ax, videoName, framerate, expert=None):
+    '''
+    Print haemorrhage, lysis and coagulation times for a given video.
+    If expert is passed, only the timings of one expert are printed, else all are printed.
+    '''
+    # Colors for haemorrhage, lysis and coagulation lines
+    colors = ['r','g','k']
+
+    # Data structure
+    # Video : Stages (haemorrhage, lysis, coagulation)
+    #   Stage : [values] (array of times of experts in miliseconds)
+    data = {"DSC_1089":
+                {"Haemorrhage": [2,0,2,1,1],
+                 "Lysis":       [8,0,6,5,5],
+                 "Coagulation": [42,0,7,24,18]},
+
+            "DSC_1098":
+                {"Haemorrhage": [8,9,4,3,3],
+                 "Lysis":       [10,18,6,5,8],
+                 "Coagulation": [16,74,12,21,15]},
+
+            "DSC_1104":
+                {"Haemorrhage": [1,4,2,1,1],
+                 "Lysis":       [3,41,4,2,6],
+                 "Coagulation": [20,81,5,8,12]},
+
+            "DSC_1107":
+                {"Haemorrhage": [2,10,2,2,1],
+                 "Lysis":       [7,59,5,4,9],
+                 "Coagulation": [24,91,9,14,13]},
+
+            "DSC_1109":
+                {"Haemorrhage": [1,2,1,1,1],
+                 "Lysis":       [2,10,2,2,2],
+                 "Coagulation": [20,34,4,12,6]}
+    }
+
+    # Check if video is in dictionary
+    video = data.get(videoName, None)
+    if video is None:
+        print("Selected video %s has no expert annotations" % videoName)
+        return
+
+    # Iterate over stages
+    for stage, color in zip(list(video.values()), colors):
+        if expert is not None:
+            # Print one expert's values
+            # Can crash if expert index out of range
+            value = stage[expert]
+            # ms to frame
+            frame = value * framerate
+            ax.axvline(x=frame, color=color)
+            pass
+        else:
+            # Print all values
+            for value in stage:
+                frame = value * framerate
+                ax.axvline(x=frame, color=color)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--video", type=str, default="Analyser/test/neg_DSC_1106.MOV", help="path to the video")
+    parser.add_argument("--video", type=str, default="Analyser/test/DSC_1107.MOV", help="path to the video")
     # parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
     kwargs = parser.parse_args()
     video_path = kwargs.video
@@ -62,12 +122,18 @@ if __name__ == "__main__":
 
     model.eval()  # Set in evaluation mode
 
+    # Dataset and dataloader
+    dataset = VideoDataset(video_path, img_size=opt.img_size, frame_skip=opt.frame_skip)
     dataloader = DataLoader(
-        VideoDataset(video_path, img_size=opt.img_size, frame_skip=opt.frame_skip),
+        dataset,
         batch_size=opt.batch_size,
         shuffle=False,
         num_workers=opt.n_cpu,
     )
+
+    # Parameters to print experts' timings
+    framerate = dataset.get_framrate()
+    videoName = os.path.splitext(os.path.basename(video_path))[0]
 
     classes = load_classes(opt.classes)  # Extracts class labels from file
 
@@ -113,6 +179,7 @@ if __name__ == "__main__":
     ax1.plot(frames, total_area)
     ax2.set_title("Total number of detections")
     ax2.plot(frames, num_of_detections)
+    print_expert_timings(ax1, videoName, framerate)
 
     plt.savefig('/home/angel/Dropbox/DropboxTFG/test.png')
     

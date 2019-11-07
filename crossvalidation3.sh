@@ -43,9 +43,9 @@ cd /home/angel/experiments
 mkdir $NAME1
 mv exp1* $NAME1
 mkdir $NAME2
-mv exp1* $NAME2
+mv exp2* $NAME2
 mkdir $NAME3
-mv exp1* $NAME3
+mv exp3* $NAME3
 
 # Logs to dropbox
 mkdir /home/angel/Dropbox/$NAME1
