@@ -53,27 +53,27 @@ def print_expert_timings(ax, videoName, framerate, expert=None):
     # Data structure
     # Video : Stages (haemorrhage, lysis, coagulation)
     #   Stage : [values] (array of times of experts in miliseconds)
-    data = {"DSC_1089":
+    data = {"DSC_1089.MOV":
                 {"Haemorrhage": [2,0,2,1,1],
                  "Lysis":       [8,0,6,5,5],
                  "Coagulation": [42,0,7,24,18]},
 
-            "DSC_1098":
+            "DSC_1098.MOV":
                 {"Haemorrhage": [8,9,4,3,3],
                  "Lysis":       [10,18,6,5,8],
                  "Coagulation": [16,74,12,21,15]},
 
-            "DSC_1104":
+            "DSC_1104.MOV":
                 {"Haemorrhage": [1,4,2,1,1],
                  "Lysis":       [3,41,4,2,6],
                  "Coagulation": [20,81,5,8,12]},
 
-            "DSC_1107":
+            "DSC_1107.MOV":
                 {"Haemorrhage": [2,10,2,2,1],
                  "Lysis":       [7,59,5,4,9],
                  "Coagulation": [24,91,9,14,13]},
 
-            "DSC_1109":
+            "DSC_1109.MOV":
                 {"Haemorrhage": [1,2,1,1,1],
                  "Lysis":       [2,10,2,2,2],
                  "Coagulation": [20,34,4,12,6]}
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
     # Parameters to print experts' timings
     framerate = dataset.get_framrate()
-    videoName = os.path.splitext(os.path.basename(video_path))[0]
+    videoName = os.path.basename(video_path)
 
     classes = load_classes(opt.classes)  # Extracts class labels from file
 
