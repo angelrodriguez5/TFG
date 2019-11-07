@@ -205,3 +205,6 @@ class VideoDataset(Dataset):
 
     def __del__(self):
         self.capture.release()
+
+    def get_framrate(self):
+        return self.capture.get(cv2.CAP_PROP_FPS)
