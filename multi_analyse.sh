@@ -1,7 +1,7 @@
 
-# Test first video
-MODEL="/home/angel/experiments/Pretrained/exp1_xtttv/checkpoints/"
-VIDEO="--video_path /home/angel/HET-CAM/DSC_1098"
+# Test
+MODEL="/home/angel/experiments/Pretrained/exp1_ttvxt/checkpoints/"
+VIDEO="--video_path /home/angel/HET-CAM/DSC_1107.MOV"
 MAX="--max_x 1500" # 25 s
 
 WEIGTHS="--weights_path ${MODEL}yolov3_ckpt_40.pth"
