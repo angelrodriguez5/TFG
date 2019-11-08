@@ -21,6 +21,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
 
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+
 class Options(object):
     '''
     Static Configuration options
@@ -103,13 +106,34 @@ def print_expert_timings(ax, videoName, framerate, expert=None):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--video", type=str, default="Analyser/test/DSC_1107.MOV", help="path to the video")
-    # parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
-    kwargs = parser.parse_args()
-    video_path = kwargs.video
-    print("Video: " + video_path)
+    
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--video", type=str, default="Analyser/test/DSC_1107.MOV", help="path to the video")
+    # # parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
+    # kwargs = parser.parse_args()
+    # video_path = kwargs.video
+    # print("Video: " + video_path)
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--weights_path", type=str, default="Analyser/model/weights.pth")
+    parser.add_argument("--video_path", type=str, default="Analyser/test/DSC_1107.MOV")
+    parser.add_argument("--output_name", type=str, default="default", help="name of the graph")
+    parser.add_argument("--max_x", type=int, default=-1, help="higher bound for the X values of the graph")
+    args = parser.parse_args()
+
+    video_path = args.video_path
+    weights_path = args.weights_path
+
+    '''
+    # GUI ask to open a video
+    Tk().withdraw()
+    # Supported file extensions
+    videotypes = [("Video", "*.mp4 *.mov *.avi")]
+    weighttypes = [("Weights", "*.pth")]
+    # show a dialog box and return the path to the selected file
+    weights_path = askopenfilename(title="Choose weights",filetypes=weighttypes)
+    video_path = askopenfilename(title="Open a video",filetypes=videotypes)
+    '''
     opt = Options()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -118,7 +142,10 @@ if __name__ == "__main__":
     model = Darknet(opt.model_def, img_size=opt.img_size).to(device)
 
     # Load weights
-    model.load_state_dict(torch.load(opt.weights))
+    if torch.cuda.is_available():
+        model.load_state_dict(torch.load(weights_path))
+    else:
+        model.load_state_dict(torch.load(weights_path, map_location='cpu'))
 
     model.eval()  # Set in evaluation mode
 
@@ -174,20 +201,21 @@ if __name__ == "__main__":
                 num_of_detections.append(0)
                 total_area.append(0)
 
-    fig, (ax1,ax2) = plt.subplots(1, 2)
-    ax1.set_title("Area of bleeding")
-    ax1.plot(frames, total_area)
-    ax2.set_title("Total number of detections")
-    ax2.plot(frames, num_of_detections)
-    print_expert_timings(ax1, videoName, framerate)
+    fig, ax = plt.subplots()
+    ax.set_title("Area of bleeding")
+    ax.plot(frames, total_area)
+    print_expert_timings(ax, videoName, framerate)
+    plt.savefig('/home/angel/Dropbox/DropboxTFG/%s_area.png' % args.output_name)
+    plt.close()
 
-    plt.savefig('/home/angel/Dropbox/DropboxTFG/test.png')
-    
-    print("Area:")
-    print(total_area)
-    print("")
-    print("# detections")
-    print(num_of_detections)
+    fig, ax = plt.subplots()
+    ax.set_title("Total number of detections")
+    ax.plot(frames, num_of_detections)
+    print_expert_timings(ax, videoName, framerate)
+    plt.savefig('/home/angel/Dropbox/DropboxTFG/%s_detections.png' % args.output_name)
+    plt.close()
+
+
     # # Bounding-box colors
     # cmap = plt.get_cmap("tab20b")
     # colors = [cmap(i) for i in np.linspace(0, 1, 20)]
