@@ -1,4 +1,4 @@
-NAME1="ObjScale_1-50"
+NAME1="ObjScale_1-25"
 PARAMS1="--pretrained_weights Yolo/weights/darknet53.conv.74 --augmentation True"
 
 
