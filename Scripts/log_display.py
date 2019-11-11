@@ -154,12 +154,16 @@ if __name__ == '__main__':
 	''' 
 	# Cross validation 
 	exp_dir = "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\"
-	exp1 = exp_dir + "Pretrained"
-	exp2 = exp_dir + "Augmented"
+	exp1 = exp_dir + "ObjScale_1-25"
+	exp2 = exp_dir + "ObjScale_1-50"
+	exp3 = exp_dir + "ObjScale_1-75"
+	exp4 = exp_dir + "ObjScale_1-100"
 	# Dictionary of user-defined log names and their directories
 	# All log files will overlap in each graph and the legend will show the name given by this dictionary
-	log_files = {"Run 1": exp1,
-				 "Run 2": exp2}
+	log_files = {"1-25": exp1,
+				 "1-50": exp2,
+				 "1-75": exp3,
+				 "1-100": exp4}
 
 	tags = ["val_recall", "val_precision", "val_f1", "neg_test_#FP"]
 	# tags = ["tra_loss", "tra_recall", "tra_precision", "tra_f1"]

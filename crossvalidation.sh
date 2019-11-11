@@ -1,5 +1,5 @@
-NAME1="ObjScale_1-25"
-PARAMS1="--pretrained_weights Yolo/weights/darknet53.conv.74 --augmentation True"
+NAME1="Final_training"
+PARAMS1="--evaluation_interval 999 --checkpoint_interval 5 --test_interval 1"
 
 
 echo Experiment 1 - tttvx

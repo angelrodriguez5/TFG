@@ -4,7 +4,6 @@ from Yolo.models import *
 from Yolo.utils.utils import *
 from Yolo.utils.datasets import *
 from Yolo.utils.parse_config import *
-from Yolo.utils.CustomDatasetExporter import Mark
 
 from terminaltables import AsciiTable
 
