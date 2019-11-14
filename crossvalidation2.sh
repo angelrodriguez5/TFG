@@ -3,10 +3,10 @@ PARAMS1="--augmentation True"
 NAME2="NotAugmented_final"
 PARAMS2="--augmentation False"
 
-echo Experiment 1 - tttvx
-cp data/crossvalidation/1-tttvx/* data/custom/
-python3 train.py --experiment_name exp1_tttvx $PARAMS1
-python3 train.py --experiment_name exp2_tttvx $PARAMS2
+# echo Experiment 1 - tttvx
+# cp data/crossvalidation/1-tttvx/* data/custom/
+# python3 train.py --experiment_name exp1_tttvx $PARAMS1
+# python3 train.py --experiment_name exp2_tttvx $PARAMS2
 
 echo Experiment 2 - xtttv
 cp data/crossvalidation/2-xtttv/* data/custom/
