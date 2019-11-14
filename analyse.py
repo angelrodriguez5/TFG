@@ -40,7 +40,7 @@ class Options(object):
     # How many frames to be processed at the same time
     batch_size = 4
     # Number of frames to be skipped between samples
-    frame_skip = 0
+    frame_skip = 5000
     n_cpu = 0
     img_size = 416
 
@@ -107,33 +107,19 @@ def print_expert_timings(ax, videoName, framerate, expert=None):
 
 if __name__ == "__main__":
     
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("--video", type=str, default="Analyser/test/DSC_1107.MOV", help="path to the video")
-    # # parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
-    # kwargs = parser.parse_args()
-    # video_path = kwargs.video
-    # print("Video: " + video_path)
-
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights_path", type=str, default="Analyser/model/weights.pth")
-    parser.add_argument("--video_path", type=str, default="Analyser/test/DSC_1107.MOV")
-    parser.add_argument("--output_name", type=str, default="default", help="name of the graph")
-    parser.add_argument("--max_x", type=int, default=-1, help="higher bound for the X values of the graph")
-    args = parser.parse_args()
+    parser.add_argument("--video", type=str, help="path to the video")
+    # parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
+    kwargs = parser.parse_args()
+    video_path = kwargs.video
 
-    video_path = args.video_path
-    weights_path = args.weights_path
+    # If no video is passed as argument, open file explorer
+    if not video_path:
+        Tk().withdraw()
+        # Supported file extensions
+        videotypes = [("Video", "*.mp4 *.mov *.avi")]
+        video_path = askopenfilename(title="Open a video",filetypes=videotypes)
 
-    '''
-    # GUI ask to open a video
-    Tk().withdraw()
-    # Supported file extensions
-    videotypes = [("Video", "*.mp4 *.mov *.avi")]
-    weighttypes = [("Weights", "*.pth")]
-    # show a dialog box and return the path to the selected file
-    weights_path = askopenfilename(title="Choose weights",filetypes=weighttypes)
-    video_path = askopenfilename(title="Open a video",filetypes=videotypes)
-    '''
     opt = Options()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -143,9 +129,9 @@ if __name__ == "__main__":
 
     # Load weights
     if torch.cuda.is_available():
-        model.load_state_dict(torch.load(weights_path))
+        model.load_state_dict(torch.load(opt.weights))
     else:
-        model.load_state_dict(torch.load(weights_path, map_location='cpu'))
+        model.load_state_dict(torch.load(opt.weights, map_location='cpu'))
 
     model.eval()  # Set in evaluation mode
 
@@ -201,73 +187,18 @@ if __name__ == "__main__":
                 num_of_detections.append(0)
                 total_area.append(0)
 
-    fig, ax = plt.subplots()
-    ax.set_title("Area of bleeding")
-    ax.plot(frames, total_area)
-    print_expert_timings(ax, videoName, framerate)
-    plt.savefig('/home/angel/Dropbox/DropboxTFG/%s_area.png' % args.output_name)
-    plt.close()
+    # Create subplots and set title
+    fig, (ax1,ax2) = plt.subplots(2, 1, sharex=True)
+    fig.suptitle(videoName)
 
-    fig, ax = plt.subplots()
-    ax.set_title("Total number of detections")
-    ax.plot(frames, num_of_detections)
-    print_expert_timings(ax, videoName, framerate)
-    plt.savefig('/home/angel/Dropbox/DropboxTFG/%s_detections.png' % args.output_name)
-    plt.close()
+    ax1.set_title("Area of bleeding")
+    ax1.plot(frames, total_area)
+    print_expert_timings(ax1, videoName, framerate)
 
+    ax2.set_title("Total number of detections")
+    ax2.plot(frames, num_of_detections)
+    print_expert_timings(ax2, videoName, framerate)
 
-    # # Bounding-box colors
-    # cmap = plt.get_cmap("tab20b")
-    # colors = [cmap(i) for i in np.linspace(0, 1, 20)]
-
-    # print("\nSaving images:")
-    # # Iterate through images and save plot of detections
-    # for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
-
-    #     print("(%d) Image: '%s'" % (img_i, path))
-
-    #     # Create plot
-    #     img = np.array(Image.open(path))
-    #     plt.figure()
-    #     fig, ax = plt.subplots(1)
-    #     ax.imshow(img)
-
-    #     # Draw bounding boxes and labels of detections
-    #     if detections is not None:
-    #         # Rescale boxes to original image
-    #         detections = rescale_boxes(detections, opt.img_size, img.shape[:2])
-    #         unique_labels = detections[:, -1].cpu().unique()
-    #         n_cls_preds = len(unique_labels)
-    #         bbox_colors = random.sample(colors, n_cls_preds)
-    #         for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-
-    #             print("\t+ Label: %s, Conf: %.5f" % (classes[int(cls_pred)], cls_conf.item()))
-
-    #             box_w = x2 - x1
-    #             box_h = y2 - y1
-
-    #             color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
-    #             # Create a Rectangle patch
-    #             bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=1, edgecolor='b', facecolor="none")
-    #             # Add the bbox to the plot
-    #             ax.add_patch(bbox)
-    #             '''
-    #             # Add label
-    #             plt.text(
-    #                 x1,
-    #                 y1,
-    #                 s=classes[int(cls_pred)],
-    #                 color="white",
-    #                 verticalalignment="top",
-    #                 bbox={"color": color, "pad": 0},
-    #             )
-    #             '''
-
-    #     # Save generated image with detections
-    #     plt.axis("off")
-    #     plt.gca().xaxis.set_major_locator(NullLocator())
-    #     plt.gca().yaxis.set_major_locator(NullLocator())
-    #     filename = path.split("/")[-1].split(".")[0]
-    #     plt.savefig(f"output/{filename}.png", bbox_inches="tight", pad_inches=0.0)
-    #     plt.close()
-        
+    plt.show()
+    # plt.savefig('/home/angel/Dropbox/DropboxTFG/%s.png' % args.videoName)
+    # plt.close()

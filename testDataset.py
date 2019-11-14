@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
         # Tensor to RGB(0..1) image
         i = img3[0].permute(1, 2, 0).numpy()
-        plt.subplot(211)
-        plt.title("rbg from tensor")
+        plt.subplot(121)
+        plt.title("Original")
         plt.imshow(i)
         # RGB to HSV (0..360, 0..1, 0..1)
         i = cv2.cvtColor(i, cv2.COLOR_RGB2HSV)
@@ -108,8 +108,8 @@ if __name__ == "__main__":
         i[:,:,2] += -0.1
         # HSV to RGB (0..1)
         rgb = cv2.cvtColor(i, cv2.COLOR_HSV2RGB)
-        plt.subplot(212)
-        plt.title("rgb from hsv")
+        plt.subplot(122)
+        plt.title("HSV augmented")
         plt.imshow(rgb)
 
         '''

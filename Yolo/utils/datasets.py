@@ -198,7 +198,10 @@ class VideoDataset(Dataset):
         # Resize
         img = resize(img, self.img_size)
 
-        return frame_num, img
+        # Frames to secs
+        s = frame_num / float(self.get_framrate())
+
+        return s, img
 
     def __len__(self):
         return (int(self.total_frames / self.frame_skip) if self.frame_skip else self.total_frames)
