@@ -119,6 +119,7 @@ def plot_crossvalidation_logs(paths_dic, tags):
 
 				plt.plot(steps, m, label=name)
 
+
 			# Show legend on the first subplot, it is the same for the rest
 			if i == 0:
 				plt.legend(loc='best', frameon=True)
@@ -133,6 +134,7 @@ def plot_crossvalidation_logs(paths_dic, tags):
 
 if __name__ == '__main__':
 	'''
+	# One log at a time
 	exp_dir = "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\"
 	exp1 = exp_dir + "crossvalidation\\tttvx"
 	exp2 = exp_dir + "crossvalidation\\xtttv"
@@ -152,19 +154,16 @@ if __name__ == '__main__':
 	plot_tensorflow_log(log_files, tags)
 
 	''' 
+
 	# Cross validation 
 	exp_dir = "C:\\Users\\pickl\\Documents\\UDC2018\\TFG-NoGit\\experiment_logs\\"
-	exp1 = exp_dir + "ObjScale_1-25"
-	exp2 = exp_dir + "ObjScale_1-50"
-	exp3 = exp_dir + "ObjScale_1-75"
-	exp4 = exp_dir + "ObjScale_1-100"
+	exp1 = exp_dir + "Augmented_final"
+	exp2 = exp_dir + "NotAugmented_final"
+
 	# Dictionary of user-defined log names and their directories
 	# All log files will overlap in each graph and the legend will show the name given by this dictionary
-	log_files = {"1-25": exp1,
-				 "1-50": exp2,
-				 "1-75": exp3,
-				 "1-100": exp4}
+	log_files = {"Final config": exp1}
 
-	tags = ["val_recall", "val_precision", "val_f1", "neg_test_#FP"]
+	tags = ["val_recall", "val_precision"]
 	# tags = ["tra_loss", "tra_recall", "tra_precision", "tra_f1"]
 	plot_crossvalidation_logs(log_files, tags)

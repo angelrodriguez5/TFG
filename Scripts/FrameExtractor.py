@@ -4,7 +4,7 @@ import os
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-def exportFrames(fileName):
+def exportFrames(fileName, frameskip):
     # Open video capture
     cap = cv2.VideoCapture(fileName)
 
@@ -22,16 +22,14 @@ def exportFrames(fileName):
     count = 0
     vidName = os.path.splitext(os.path.basename(fileName))[0]
 
-    # Get one image for every 240 frames
-    for i in range(0, totalFrames, 240):
+    # Get one image skipping an amount frames in between
+    for i in range(0, totalFrames, frameskip):
         # jump to selected frame witout reading all the intermediate frames
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         status, frame = cap.read()
 
         # Save frame as a png image in the directory
         name = dirName + "/" + vidName + "-frame" + str(i) + ".png"
-        # Flip frame to save it in the correct orientation
-        # save = cv2.flip(cv2.transpose(frame), 0)
         cv2.imwrite(name, frame)
         count += 1
 
@@ -39,22 +37,19 @@ def exportFrames(fileName):
     cap.release()
 
 
-def main():
+if (__name__ == '__main__'):
+    # Parameters
+    frameskip = 240
+
     # we don't want a full GUI, so keep the root window from appearing
     Tk().withdraw()
     # Supported file extensions
-    ftypes = [("Video", "*.mov *.mp4 *.wmv")]
+    ftypes = [("Video", "*.mov *.mp4 *.wmv *.avi")]
     # show an "Open" dialog box and return the path to the selected file
     filename = askopenfilename(filetypes=ftypes)
 
     if (filename):
         # Execute GUI
-        exportFrames(filename)
+        exportFrames(filename, frameskip)
     else:
         print('Cancelled')
-
-
-
-if (__name__ == '__main__'):
-    # Run program
-    main()

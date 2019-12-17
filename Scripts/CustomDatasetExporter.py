@@ -13,7 +13,6 @@ marks = []
 # Visualisation mode
 pixelMode = False
 
-# region Mark
 class Mark(patches.Rectangle):
 
     DEFAULT_COLOR = 'b'
@@ -110,8 +109,6 @@ class Mark(patches.Rectangle):
 
         return Mark(classNum, (cx,cy), (w,h))
 
-
-#endregion
 
 # region States
 # Interface
@@ -284,7 +281,7 @@ class DeleteState(State):
 
 #endregion
 
-class GUI(object):
+class ImageMarker(object):
 
     ADD_CENTER_STATE = 0
     ADD_REGION_STATE = 1
@@ -333,11 +330,11 @@ class GUI(object):
                 ax.add_patch(mark)
         #end if
 
-    def show(self):
-        # Show figure
         plt.show()
-    
+
     def onClickPress(self, event):
+        # static class number, can be updated in the future to 
+        # support switching between different classes
         classNum = 0
         # Check that click is in bounds
         height, width, channels = self.img.shape
@@ -426,8 +423,8 @@ class GUI(object):
         f.close()
 
 
-def main():
-    # we don't want a full GUI, so keep the root window from appearing
+if (__name__ == '__main__'):
+    # we don't want a full tkinter GUI, so keep the root window from appearing
     Tk().withdraw()
     # Supported file extensions
     ftypes = [("Image", "*.png *.jpg *.jpeg *.bmp")]
@@ -436,11 +433,6 @@ def main():
 
     if (filename):
         # Execute GUI
-        gui = GUI(filename)
-        gui.show()
+        gui = ImageMarker(filename)
     else:
         print('Cancelled')
-
-if (__name__ == '__main__'):
-    # Run program
-    main()

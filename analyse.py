@@ -40,7 +40,7 @@ class Options(object):
     # How many frames to be processed at the same time
     batch_size = 4
     # Number of frames to be skipped between samples
-    frame_skip = 5000
+    frame_skip = 500
     n_cpu = 0
     img_size = 416
 
@@ -101,15 +101,13 @@ def print_expert_timings(ax, videoName, framerate, expert=None):
         else:
             # Print all values
             for value in stage:
-                frame = value * framerate
-                ax.axvline(x=frame, color=color)
+                ax.axvline(x=value, color=color)
 
 
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
     parser.add_argument("--video", type=str, help="path to the video")
-    # parser.add_argument("--video", type=str, default="Analyser/test/pos_DSC_1107.MOV", help="path to the video")
     kwargs = parser.parse_args()
     video_path = kwargs.video
 
@@ -156,7 +154,7 @@ if __name__ == "__main__":
     num_of_detections = []
     total_area = []
 
-    for batch_i, (frame_nums, input_imgs) in enumerate(tqdm.tqdm(dataloader, desc="Analysing video")):
+    for batch_i, (frame_secs, input_imgs) in enumerate(tqdm.tqdm(dataloader, desc="Analysing video")):
         # Configure input
         input_imgs = Variable(input_imgs.type(Tensor))
 
@@ -165,8 +163,12 @@ if __name__ == "__main__":
             outputs = model(input_imgs)
             outputs = non_max_suppression(outputs, opt.conf_thres, opt.nms_thres)
 
+        # Cut the process at a given timestamp
+        # if frame_secs[0] > 60:
+        #         break
+
         # Save frame numbers for graphs
-        frames.extend(frame_nums)
+        frames.extend(frame_secs)
         # Extract data from frames
         for frame_detections in outputs:
 
@@ -193,11 +195,11 @@ if __name__ == "__main__":
 
     ax1.set_title("Area of bleeding")
     ax1.plot(frames, total_area)
-    print_expert_timings(ax1, videoName, framerate)
+    # print_expert_timings(ax1, videoName, framerate)
 
     ax2.set_title("Total number of detections")
     ax2.plot(frames, num_of_detections)
-    print_expert_timings(ax2, videoName, framerate)
+    # print_expert_timings(ax2, videoName, framerate)
 
     plt.show()
     # plt.savefig('/home/angel/Dropbox/DropboxTFG/%s.png' % args.videoName)
